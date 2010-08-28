@@ -1,0 +1,187 @@
+#!/usr/local/bin/perl -w 
+
+use strict; 
+
+my $result; 
+
+srand(time|$$); 
+
+$_ = $ARGV[0]; 
+ 
+if (m/(yes|no)/i) { 
+    my @yesno = 
+	(
+	 'Once my daddy told me yes and I said no.  Daddy, I wet my pants.',
+	 q{I like answers like that.  I think they're funny.},
+	 q{Where's my mommy?},
+	 );
+    $result = $yesno[rand(@yesno)];
+} 
+elsif (m/(fire|burn)/i) { 
+    my @burn = 
+	(
+	 'The leprechaun told me to burn things!',
+	 'The purple berries taste like burning',
+	 'My face is on fire!',
+	 );
+    $result = $burn[rand(@burn)];
+}
+elsif (m/worm/) { 
+    my @worm = 
+        ( 
+         q{When the doctor said I didn't have worms anymore, that was the happiest day of my life.},
+         'My worm crawled in my mouth and I ate it.', 
+         );
+    $result = $worm[rand(@worm)];
+}
+elsif (m/(candy|m\&m)/i) { 
+    $result = 'Once I had an M&M stuck in my nose';
+}
+elsif ($_ =~ m/(hi|hello)/i && $_ !~ m/name/i) { 
+    $result = q{Hello.  What's your name?};
+}	
+elsif($_ =~ m/my.*name/i) { 
+    $result = 'What a name!  Tell me about yourself.';
+} 
+elsif (m/(mom|mother|mama|dad|father|daddy|parent|parents)/i) { 
+    my @parents = 
+	( 
+	  'Will you tell me where my mommy is?',
+	  'They were in the closet making babies!',
+	  q{I don't know much about my Mom.  Daddy says she's gone away.},
+	  q{My parent's won't let me us scissors.},
+	  );
+    $result = $parents[rand(@parents)];
+} 
+elsif (m/(i think|i believe|i thought)/i) { 
+    $result = 'Why do you say that?  I would like to talk about crayons.';
+}
+elsif (m/you think that /i) { 
+    $result = q{How do you know what I'm thinking?};
+} 
+elsif (m/(pedal|bike|bicycle)/i) { 
+    $result = q{I'm pedaling backwards!}; 
+} 
+elsif (m/(live|springfield)/i) { 
+    $result = 'I live in Springfield.';
+}
+elsif (m/(restaurant|ate|eaten)/i) { 
+    my @eat = 
+	(
+	 'I heard your dad went in to a restaurant and ate everything in the restaurant and they had to close the restaurant.', 
+	 'This snowflake tastes like fishsticks.', 
+	 ); 
+    $result = $eat[rand(@eat)]; 
+} 
+elsif (m/(scissors)/i) { 
+    $result = q{My parents won't me use scissors.}; 
+}
+elsif (m/(boy|man)/i) { 
+    $result = q{I'm a boy!}; 
+}
+elsif (m/(lisa|simpson|girl|girlfriend)/i) { 
+    my @lisa = 
+	( 
+	  'Haha!  I love Lisa Simpson.', 
+	  q{Yes!  I love Lisa Simpson, and when I grow up, I'm going to marry her!},
+	  'Lisa Simpson is my girlfriend.', 
+	  );
+    $result = $lisa[rand(@lisa)];
+} 
+elsif (m/(backside|spank|whip|cane)/i) { 
+    $result = 'I ask for no bratwurst.  Away from me, lest my cane find your backside!';
+} 
+elsif (m/(teeth|brush)/i) { 
+    $result = q{I don't brush.. I don't brush!};
+} 
+elsif (m/(caps|cap gun)/i) { 
+    $result = 'I ate all my caps...';
+} 
+elsif (m/(dinner|stove|cook)/i) { 
+    $result = q{Will you cook my dinner for me?  My parents aren't home and I'm not allowed to turn on the stove.};
+} 
+elsif (m/friend/i) { 
+    $result = q{You're my best friend in the whole world.};
+}
+elsif (m/(cat|gerbil|pet)/i) { 
+    $result = 'Would you like to pet my cat?';
+}
+elsif (m/(sex|mambo|closet)/i) { 
+    $result = 'Mrs. Crobopel and Principal Skinner were in the closet making babies, and I saw one of the babies and it looked at me.';
+}
+elsif (m/(crayon|crayola|marker)/i) { 
+    $result = q{I don't have a red crayon...};
+}
+elsif (m/(diarmama|project)/i) {
+    $result = q{What's a diorama?};
+} 
+elsif (m/(vent|dog)/i) {
+    $result = q{There's a dog in the vent.};
+}
+elsif (m/(dress|clothes)/i) {
+    $result = 'I dress myself!';
+}
+elsif (m/(bovine|university|grow|college)/i) {
+    $result = q{When I grow up, I'm going to Bovine University};
+}
+elsif (m/(krusty|clown|klown|funny)/i) {
+    $result = 'I think Krusty the Klown is funny.';
+} 
+elsif (m/chief/i) { 
+    $result = 'My daddy is the police chief.';
+} 
+elsif (m/(train|tracks|choo)/i) {
+    $result = q{It says... Choo-Choo-Choose Me.  And there's a picture of a train...};
+} 
+elsif (m/(grandpa|grandfather|grandma|grandmother)/i) {
+    $result = q{My Dad won't let me talk about my grandparents.};
+} 
+elsif (m/fart/i) { 
+    $result = 'Hehe.. you said fart!';
+} 
+elsif (m/(bathroom|toilet|urinal|restroom)/i) {
+    $result = 'May I be excused?';
+} 
+elsif (m/(rubber|pants)/i) {
+    $result = q{Daddy, can I take off my rubber pants?  They're hot.};
+} 
+elsif ($_ =~ m/(dork|dumbass|jerk|loser|dropout|stupid|weenie)/i && 
+       $_ =~ m/(you|ralph|youre)/i) {
+    $result = q{I'm glad that we're friends.  Can I call you friend?};
+} 
+elsif (m/(dork|dumbass|jerk|loser|dropout|stupid|weenie)/i) {
+    $result = q{Hehehe.  Some thing's are just like that!};
+} 
+elsif (m/(fuck|shit|damn|bitch|poop|goddamn|pee)/i) {
+    $result = 'My daddy washed my mouth out with soap once.';
+} 
+elsif (m/\?$/) { 
+    $result = 'Uhhh... I dunno.';
+} 
+else {
+    if (m/^([^\s]*)$/) {
+	$result = qq(What's a "$1"?  I think you're funny.);
+    }
+    else
+    {
+	if ( rand(6) % 6 == 0 ) { 
+	    $result = qq(you said "$_");
+	    if ( rand() > 75 ) {   
+		$result .= q{  You're funny.}; 
+	    }
+	}
+	else { 
+	    my @random = 
+		(
+		 q{My cat's breath smells like cat food.},	
+		 qq(So.. Do you like, "stuff?"),
+		 'Can I walk you home?',
+		 'Are you my mom?',
+		 'Will you be my friend?', 
+		 ); 
+	    $result = $random[rand(@random)];
+	}
+    }
+}
+
+print $result, "\n";

@@ -1,0 +1,127 @@
+#!/usr/local/bin/perl
+use strict;
+use vars qw($channel %data $irc $conn);
+use Net::IRC;
+use lib qw(/home/hsiao/projects/01_olga);
+require 'movie_trivia.pl';
+
+$channel = shift;
+print "channel: $channel\n";
+$irc = new Net::IRC;
+$conn = $irc->newconn(Nick => 'chachi',
+		      Server => 'irc.cimedia.com',
+		      Port => 6667,
+		      Ircname => 'I am in development',
+		      Username => 'Bichachi',
+		     );
+    
+$conn->add_handler(['376', '422'], \&on_connect);
+$conn->add_handler('public', \&on_public);
+$conn->add_handler('msg', \&on_msg);
+$irc->start;
+
+sub on_connect 
+{
+    my $self = shift;
+    print "Attempting to join $channel\n";
+
+    if ($channel =~ /thetub/) {
+	$self->join("$channel eviloverlord");
+    }
+    elsif ($channel =~ /hottub/) {
+	$self->join("$channel bluemeanie");
+    }
+    else {
+	$self->join("$channel");
+    }
+}
+
+sub on_address {
+    
+}
+
+sub on_public {
+    my ($self, $event) = @_;
+    my ($nick) = $event->nick;
+    my ($title, $pos, $quote, $line);
+    my ($chan) = ${$event->{'to'}}[0];
+
+    # must need array context
+    my ($arg) = $event->args;
+
+    if (rand() < .01) {
+	$self->privmsg ($chan, "shit yeah, baby!\n");
+    }
+
+    elsif ($arg =~ /^beyach/i) {
+	if ($arg =~ /quote (.+)/) {
+	    ($title, $pos) = find_title ($1);
+	    if ($title && $pos) {
+		($title, $quote) = pick_trivia ($title, $pos);
+		$self->privmsg ($chan, "I love $title!\n");
+		foreach $line (@$quote) {
+		    $self->privmsg ($chan, "$line\n");
+		}
+	    }
+
+	    else {
+		$self->privmsg ($chan, 
+				"Sorry, $nick.  I missed that one.\n");
+	    }
+	}
+	
+	elsif ($arg =~ /pick a word/) {
+	    pick_a_word($self);
+	}
+    }
+}
+
+
+sub on_msg
+{
+    my ($self, $event) = @_;
+    my ($nick) = $event->nick ();
+    my ($args) = $event->args ();
+    my (@x);
+
+    if ($nick =~ /^nandu$/i) {
+	if ($args =~ /say (.+)/i) {
+	    $self->privmsg ($channel, "$1\n");
+	}
+
+	elsif ($args =~ /zwrite (\S+) (.+)/) {
+	    system ('/usr/local/bin/zwrite', $1, '-m', $2);
+	}
+
+	elsif ($args =~ /who the fuck is (.+)/) {
+	    @x = $self->who ($1);
+	    print "@x\n";
+	}
+    }
+}
+
+
+
+sub pick_a_word {
+    my $self = shift;
+    
+    if (not defined $data{'num_words'}) {
+	my ($num_words) = `/usr/bin/wc -l /usr/dict/words` =~ m%(\d+)%;
+	$data{num_words} = $num_words;
+    }
+    
+    my $line_num = int(rand $data{'num_words'});
+    my $msg = "Ok, i'll pick the word on line $line_num\n";
+    $self->privmsg("$channel", "$msg");
+    open DICT, '</usr/dict/words' or 
+      $self->privmsg($channel, "Can't open my dictionary");
+    for (my $i=0; $i < $line_num; $i++) {
+	my $toss_word = <DICT>;
+    }
+    my $word = <DICT>;
+    close DICT;
+    $self->privmsg($channel, "My word is $word\n");
+    $data{'my_word'} = $word;
+}
+
+

@@ -1,0 +1,1001 @@
+FOUNTAIN OF DREAMS
+
+
+
+
+                       TABLE OF CONTENTS
+
+Background...................................................       1
+Objective...................................................        3
+Getting Started..............................................       4
+Florida: No Place For A Vacation-Game Overview...................   4
+Characters.......................................................   6
+      Attributes.................................................   6
+      Using Attributes...........................................   7
+      Creating Characters........................................   7
+      Constitution, Condition, and Healing......................    10
+      Skills.....................................................   11
+      Active Skills..............................................   11
+      Passive Skills.............................................   12
+      Mutations..................................................   13
+      Active Mutations...........................................   13
+      Passive Mutations..........................................   14
+      Level and Advancement......................................   14
+      The Party and Recruitment..................................   14
+Gameplay.........................................................   15
+      Saving and/or Quitting.....................................   15
+      Character Options..........................................   16
+      Character Roster Options....................................  17
+      Encounter Options..........................................   17
+      Time and Money.............................................   17
+Combat...........................................................   18
+      How It Works...............................................   18
+      Forcing Combat............................................    18
+      Types of Combat............................................   18
+      Combat Commands............................................   19
+      Weapons and Explosives.....................................   20
+      Armor......................................................   21
+         Brought to you by means of OCR. Long live the Gifmaster
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                           BACKGROUND
+Florida is an island. Direct nuclear hits on Atlanta and several Georgia
+military installations triggered a seismic backlash that jarred the peninsula
+loose from the mainland just below the panHandle; a line drawn from Daytona
+Beach to Ocala roughly describes the line of separation.  Because of the
+presence of Cape Canaveral, which America's enemies wished to preserve for
+their own use, central Florida was hit with neutron and chemical weapons.
+There was thus little physical damage to the region, although life was obliter-
+ated from the area.  This cataclysm became known as The Change.
+
+At first, the surviving Floridians tried to re-establish communication with
+the  mainland via radio, but their efforts were met with silence followed
+quickly by savage attacks from bands of radiation-crazed marauders.  Within a
+few years of The Change, the residents of the island's northern coast
+constructed a defensive wall and established coastal patrols.  They could see
+the mainland from atop the wall, a mere 5 miles away.  But anyone who attempted
+to swim across the strait  was  killed  either  by  the  contaminated sea or
+the voracious creatures that lurk therein; small boats fared better.  There
+has been no communication between the island and  the  mainland  since  the
+bombs  fell,  and  the common belief on Florida is that no decent human life
+remains off the island.
+
+After The Change, Florida communities withdrew into themselves and became
+city-states. Against all odds, this social structure has managed to survive for
+almost 50 years.  There is contact and even trade between these "cities," but
+all alliances are conducted at arms length. There is some traffic between
+communities  by  bands  of  adventurers.  Some  of these bands are survivalists
+trying to preserve some semblance of order and civilization on the island.
+Others are freebooters such as the Killer Clowns (see below) who want to profit
+from the existing disorder.  And there are vigilantes pursuing some private
+vendetta against Florida's many two-, four-, or multi-legged predators.
+
+Other than radiation and nature itself, the on y force to be reckoned with
+throughout the island is the Killer Clowns.  The Clowns have 1 oerverted the
+slapstick humor of their forebearers, taking its feigned violence literally,
+and expanding it into the martial  art Slap-Fu.  These predatory Pierrots roam
+the island, extending the power of their ancient but still dangerous founder,
+Kermit Eli, and his demented family.  The Clowns are extremely secretive, and
+their pantomime communication with each other is impenetrable to outsiders.
+They are highly skilled in the use any kind of weapon, and unusually fond of
+the bizarre, such as steel-toed flap shoes, rubber chickens stuffed with ball
+bearings, spike-studded brickbats, and seltzer bottles filled with acid. The
+Killer Clowns have fallen strangely silent lately, but it is generally believed
+that this is a momentary lull.
+
+Florida's main urban center,Miami,took a secondary nuclear salvo and was reduced
+nearly to rubble. The survivors soon split into factions and the former resort
+city is now something like a latter-day Beirut, but with  better  dance  music.
+In  this  fractious  atmosphere, with its Byzantine assortment of  groups,
+sub-groups,  splinter  groups,  gangs,  sects,mobs, cults, cells, associations,
+conspiracies, and raiding parties, only  one  force  seeks  to restore law,
+order,  and  cohesion:  Miami  Police.  Its  co-chiefs,  Tockett  and  cru6bs,
+are known and feared  throughout  the  city.  They  use  informers  and
+infiltrators  to  penetrate marauding  gangs,  uncover  their  plans,  and
+slaughter  them  In  masses  before   they   are able to carry out nefarious
+crimes.  The  chiefs  have  skimmed  a  considerable  layer  of criminal scum
+from the streets with these tactics  but  they  have  also  made  themselves
+hated  targets.  Tockett  and  Crubbs  are  said  to  have  enormous  bounties
+on  their  heads and are now never seen in public.  Talk on the street  has  it
+that  the  chiefs  even  have  to hide from some of their own men.
+
+
+The Miami Police have been so effective  that  only  three  organized  factions
+remain  in  the Miami  underworld:  The  Desoto  family,  the  obeah  Orders,
+and   the   Bahia   Mafia.   The DeSotos are bootleggers, distilling and
+bottling potent rum in  their  fortress-like  compound, and distributing it
+throughout the island.  While it is rumored that there is dissension within the
+family itself, clan patriarch Irwin DeSoto still maintains  rigid  control over
+his  dynasty's  illicit  potables.  Another  longstanding  rumor  concerns  the
+purported salubrious properties of the family brew, that it may even  contain
+the  rare  curative  liquid known as  Water  of  Dreams.  Whatever  the  exact
+truth  may  be,  those  who  associate  with the DeSotos or their product seem
+to have little to fear from mutation.
+
+The mysterious Obeah Orders is a transplanted Caribbean voodoo cult. The Obeahs,
+known  locally  as  the  OhOhs,  may  seem  a  benign  though  eccentric  clique
+to  the  uninformed.  Indeed, their readiness to share their  healing  skills
+may  even  make  them  seem  to be a force for good.  But those who ally
+themselves  to  the  OhOhs  are  said  to  have  access to powerful, arcane, and
+not altogether innocent concoctions full of "magic." And it is whispered that
+dark and bloody rituals are practiced in their guarded temple, while subtle yet
+deadly curses afflict those who defy or oppose the Obeahs.
+
+The Bahia Mafia is a more traditional criminal gang, relegating their felonious
+activities to good old-fashioned thuggery.  They are a mere shadow of the
+organized crime families that existed in Miami  before  The  Change.
+Nevertheless, Bahia thugs are able to channel their larcenous instincts into
+prosperous  commerce, specializing in gunrunning and fencing.  The fact that
+they are so open,  even  blatant,  in  these  activities  lends  some credence
+to the rumors of police corruption in the Sunshine City.
+
+
+Sandwiched between the Obeahs, DeSotos, Bahia Mafia, and Police, are the Beach-
+combers, a disorganized scavenging rabble living on the city's ragged margins
+and the island's rough-and-ready backwaters.  The 'Combers are ready to do
+anything for a price, often at a discount, Even the police are able to do little
+to stop their nocturnal predations and rarely venture into the Comber
+neighborhood in northeast Miami.  They are particularly hated by the OhOhs, who
+suspect the 'Combers of being behind the occasional lynchings of lone Obeahs.
+
+Compared to this social insanity, Florida's biological disorder seems reasonably
+tome. Mutation is a fact of life, and a constant threat, but the presence of
+Dream Water keeps mutation in check in the human population.  Among Florida's
+wildlife, natural selection keeps mutation at a constant level.  Most mutated
+animals and plants simply aren't viable in Florida's wild areas, while those
+that do survive are hunted down if they intrude into settled areas.  A few
+mutations, however, are quite hardy and far more dangerous than their ancestors
+ever were.  Hypnotic Dreamsnakes, huge Mutarantulas, and other abominations
+crawl and prowl through the steaming Florida night.  And there are strange
+stories of communities of animals mutated to the point of human intelligence and
+physiology.  It is said that they dwell in the nearly impenetrable depths of the
+vast marsh known as The Glades, fearing outsiders, following their own hidden
+agenda, and guarding a mysterious secret.
+
+This world is crazy.  Too bad you're sane.
+
+
+
+
+
+
+
+
+
+                              OBJECTIVE
+
+Who knows why you want to clean up this crazy island? Maybe your parents were
+eaten alive by a pack of mutant rats; maybe rampaging Clowns put your humble
+village to the torch and destroyed thke lives of the plain honest folk you grew
+up with; maybe radioactivity gives you the low down lonesome blues; or maybe you
+just want to end the chaos so you can lead a safer, saner life.  The real
+question is, how do you do it?
+
+In this "After The Change' world of swamp, surf, and savannah, you need to be
+well armed and stoutly armored to live to see another dawn, or another
+lunchtime.  You've heard thkat the mean streets of Miami are a good place to
+start.
+The local police there are always looking for a little help, and, as an
+incentive,
+they're willing to equip mercenaries with a little firepower.  Whether you can
+still trust them later is another matter.
+
+On your way to Miami, you notice that things are starting to get worse.  People
+seem to be mutating faster than ever before.  Mutated animals, vastly increased
+in number, are
+
+penetrating deeper and deeper into settled lands.  Precious Dream Water, the
+only reagent that has any effect in slowing mutations, has become even scarcer.
+What is the source of the Dream Water, and what has turned off the tap? Who
+would want mutants to overwhelm the island entirely? In the midst of this chaos,
+one ancient Floridian myth persists: The Fountain of Youth is somewhere on the
+island.  It is said to be a spring of fresh, crystalline water that has
+remarkable curative and purifying powers. Legend has it that a course of
+treatment in the Fountain, including long baths and plenty to drink, can cure
+any disease, even radiation sickness and mutations.  Is it the source of the
+Dream Water? If the spring exists and can be found, and if its waters can be
+made generally available, then Florida's long mutant-haunted fever dream con be
+brought to a close.  You con take 4 friends with you as you look for the answers
+you need, and there's a good chance you'll pick up a few more swamp warriors
+along the way.
+
+You may have decided to fight the madness just in time.  Then again, maybe
+you're too late.
+
+                      GETTING STARTED
+
+About This Manual
+This manual was written for IBM or IBM-compatible computers.  If you're using
+another type of computer, some commands and features described in this manual
+may be different or even unavailable on your computer system.  If you're using
+a computer other than an IBM or IBM-compatible, please read the Command Summary
+Card for information specific to your computer.
+
+  FLORIDA: NO PLACE FOR A VACATION
+
+Lock down, move out, stock up.  You're armed, you're mobile, and you want some
+loot. Use the cursor keys or keypad to cruise around the island.
+
+Resource man be an adventurer's nightmare.  Keep careful track of your skill
+levels and what sort of supplies you've got.  Press F1 through F5 to check
+the character summaries of party members.
+
+That third sleeve is always a dead giveaway. You bump into normals sometimes,
+too.  Press the letter of the encounter option you want to use, or the number
+of the topic you want to discuss.
+
+Press A and see at a glance how healthy everyone is, their armor class, what
+kind of heat they're packing &'Present ammo level, and whether anyone has gone
+and gotten himself mutated.
+
+Some fights are real mob scenes on this tight little island.  Press the first
+letter of tHe combat option you want to use, and the number of the monster or
+monsters you want to fight.
+
+                                 CHARACTERS
+
+Attributes
+Characters are the sum of their attributes; their fate will in part be decided
+by their muscles, smarts, reflexes, and other factors as described below:
+
+Strength (ST): Raw physical power.  The kigher your ST is, the more damage you
+will do with handheld weapons other than firearms.
+
+Dexterity (DX): Quickness and agility.  If your DX is high, you will be hard to
+hit in combat, you will have an improved chance of hitting first in combat, and
+you will be more accurate with missile weapons.
+
+Charisma (CH): Personal appeal.  If your CH is high, strangers will be more
+inclined to react positively toward you, and you will have a better chance of
+recruiting NPCs into your party.
+
+Will Power (WP): Mental toughness.  WP is the ability to exert mind over matter,
+even to the point of remaining able to fight after you have been rendered
+unconscious.
+
+IQ: Mental capacity.  IQ determines how adept you can become in Passive Skills.
+For every point of IQ above 15 a PC or NPC has, he can potentially add 1 level
+to his Passive Skills.
+
+Aptitude (AP): Mental flexibility. AP determines how adept you can become at
+Active Skills. For every point of AP above 1 5 a PC or NPC has, he can
+potentially add 1 level maximum to his Passive Skills.
+
+Luck (LK): The intangibles, whether you beat the odds or they beat up on you.
+If you have enough LK, things just work out for you; but if you have too
+little, you won't be able to hit the broad side of a bomb crater, while the
+monsters will beat the gamma radiation out of you with their eyes membraned.
+
+                             Using Attributes
+When you want a PC or NPC to try to use one of his Attributes:
+
+1. Press the Function key, F1 - F5, that corresponds to that character.
+2. Press the first letter of the Attribute you want him to use.
+3. Press the appropriate Arrow key (^ > v < ) to indicate the direction  in
+   which  you want him to use the Attribute, or press the Spacebar if you want
+   him to use the Attribute in the space where he or she is standing.
+
+
+
+
+
+
+
+
+
+
+
+
+                           Creating Characters
+
+You will begin the game with an adventuring party of up to three characters to
+create your stalwart band, follow these steps:
+
+
+ 1. When the opening screen
+    appears, press any key to go to
+    the Character Creation screen.
+
+ 2. You have four options on the
+    Character Creation Option screen:
+          A)dd member
+          E)dit member
+          R)emove member
+          P)lay the game
+ To create the first Player Character
+ (PC), press A for A)dd Member.
+
+ 3. Now choose from the five character professions in Fountain of Dreams: 1)
+    Survivalist,
+    2) Vigilante, 3) Medic, 4) Hood, and 5) Mechanic.
+       Press the number corresponding to the character profession you want your
+       first PC to follow.  This will bring up the Character Creation screen.
+
+  4. The Character Creation screen displays the chosen profession's Active and
+     Passive
+     Skills, Attributes, the number of Bonus Attribute points you con distribute
+     among the PC's Attributes, and the PC's beginning Constitution (CON).  Note
+     that different Professions have different starting Attributes, Skills, and
+     beginning CONS:
+
+                            CON
+
+ PROF.      (Attributes)  MIN/MAX   ACTIVE SKILLS/PASSIVE SKILLS
+Survivalist (IQ,AP,16)    20-25     Pharmacy,mechanics,stealth,handgun,gunsmith
+Vigilante   (10,16)       20-25     Demolition, brawling, handgun, gunsmith
+Medic       (IQ,16,AP,17) 15-20     Medic,perception,blades
+Hood        (IQ,AP,16)    15-25     Lockpick,stealth,handgun
+Mechanic    (IQ,AP,16)    15-25     Bomb/alarm disarm,mechanic,demolition,brawln
+
+Medics beginning Medic skill and Hoods beginning Lockpick skill are at level 2.
+All other beginning Active and Passive Skills are level 1.
+
+ 5. A PC's CON can be adjusted by pressing the number corresponding to his
+profession, this will generate a new CON.  You can continue generating new
+numbers until one you like (a high one, presumably) appears.
+
+ 6. Members of each profession have Bonus Attribute points to distribute.
+    Vigilantes have 28 points to distribute, Survivalists and Mechanics both
+    have 21 Bonus points, and Medics and Hoods have 20 Bonus points each. You
+    may distribute these points any way you choose among a character's
+    Attributes, although no Attribute can exceed 20 at the beginning of the game
+    And all the Bonus points must be distributed when creating the character,
+    undistributed points are lost.  To scroll through the Attributes, press the
+    dwn or up Arrow keys to increase an attribute, highlight it using the up or
+    dwn Arrow keys and press the right Arrow key, and to decrease it press the
+    left Arrow key.
+
+ 7. After you have distributed all the bonus Attribute points, enter a name for
+    the character.  Use the Backspace to erase "Oinab Bob" and type in the name
+    of your choice.  Names cannot include numbers or punctuation; post-Holocaust
+     Floridians are lousy at math, and hyphens and apostrophes only confuse
+     them.
+
+ 8.  After you have chosen a name, or maybe even before, choose a sex for the
+     character.  This is a delicate matter that's best decided between the two
+     of you.  Use the up or dwn Arrow keys to highlight SEX on the character
+     creation screen just below the Attributes,and use the right or left Arrow
+     keys to toggle between male and female.  Attributes are the same for male
+     and female characters.  So to speak.
+
+ 9.  Press ESC to return to the Character Creation Option screen when you are
+     through creating your first character. Press A if you want to create
+     another character, E if you want to edit your first character, or P if you
+     want to begin playing the game. If you press A, repeat the steps above.
+
+ 10. After you finish creating a character,if you are feeling especially
+     arbitrary and you want to change the character's name, profession, and sex,
+     or redistribute bonus Attribute points, press E to Edit the character.
+     Follow steps 1-8 above to choose a new name, profession, etc.
+
+ 11. If you wish to remove any of the PCs you have created,press the Function
+     key  (F1 - F5) that corresponds to the character, this will bring up that
+     PC's Character Creation screen. Press Esc to return to the Character
+     Creation Option screen, and then press R. Press y if you still want to
+     delete this PC, or press n if you don't.
+
+ 12. After you have created the characters you want,press P to begin playing the
+     game.
+
+Except during combat and encounters, the names and Function keys of your party
+members will appear across the top of the screen.
+
+        Constitution, Condition, and Healing
+PC's  and  NPC's  health  is  indicated  by  two  numbers,  Constitution  (CON)
+and MAXCON.
+
+CON is the amount of damage your character con take before going unconscious,for
+example, if  your  CON  is  20,  you  will  crumple  to  the  ground  when  you
+absorb  damage of 21 or more.  But you're  not  dead  yet,  just  Unconscious
+(UNC)  and  you'll  be  back  on your feet in no time.  But tkere are things
+worse  than  being  UNC,  such  as  Serious(SER), Critical(CRT), Comatose(COM),
+and  Dead  (DED).  You'll  bounce  right  back  from  being UNC, but you'll need
+medical attention if you're SER, and your condition will begin to deteriorate if
+you don't get it. CRT and COM are tke next two steps below SER and also require
+intervention by a kealth professional.  DED sort of  speaks  for  itself.  DED
+is  bad.
+
+While  CON  is  the  current  number  of  a  ckaracter's  hit  points,  maxccon
+is the maximum number of hit points he can have at kis  current level.That is,
+MaxCON  is  the  number  of hit points he possesses when not wounded, diseased,
+poisoned, or mutated.
+
+Condition is separate from CON, but still affects it.  It comes in two  flavors,
+Afflicted  and Unafflicted.  Unafflicted means you're as  normal  as  you  ever
+were;  Afflicted  means  you're poisoned, envenomed, mutated, irradiated,  or
+diseased,  and  you  should  get  to  a  Doctor. Otherwise, your CON will  just
+leak  away;  being  Afflicted  drains  CON  at  a  steady  rate until you are
+DED.  When a party member is Afflicted, his name and Function key number at the
+top of the main screen will be kigHlighted, and on the Combat or Encounter
+screens his MAX CON will be highlighted.  To see what a party member's
+Affliction is, press f1 - F5 to call up his Character Screen and then press V
+to view the Affliction.
+If you want to speed-up the process of healing when one or more characters are
+wounded or unconscious, press and hold down the ESC key to make time pass more
+rapidly. Remember, characters or NPC's who are Afflicted or whose condition is
+SER or worse do not heal normally.
+
+                                  Skills
+ACTIVE SKILLS
+Active Skills are player initiated and require concentration to use.The more
+these skills are used successfully, the more highly developed they will become.
+
+Active skill levels Usually begin at 1, and can increase by 1 level for each
+point of IQ over 15 a PC or NPC has.
+
+Medic:
+Perform simple medical procedures, suck as dressing wounds and reviving fallen
+comrades to consciousness.  This skill does not enable you to cure diseases or
+neutralize poison.
+
+Lockpick:
+One of the most useful skills, Lockpick lets you open any lock, if you're adept
+enough. You'll have to leave a lot of treasure behind closed doors, drawers, and
+lids if you aren't highly proficient in this skill.
+
+Climb:
+Climb any surface.  Simple as that.
+
+Pharmacy:
+Identify/analyze drugs and medicines, as well as the mysterious concoctions of
+the Obeah Orders.  Possessors of this skill con also treat victims of poison and
+venomous bites or stings.
+
+Bomb/Alarm Disarm:
+Defuse tense situations, whether caused by explosive devices left carelessly
+strewn about or alarm systems somebody was rude enough to leave turned on.
+
+Mechanic:
+Know how to maintain and repair Florida's few remaining mechanical relics.
+Without the proper tools, this skill isn't good for much.
+
+Electronics:
+Know how to keep Florida's patched-up electronics gear humming.  Again, find the
+right tools or forget about it.
+
+Doctor:
+Perform complicated medical procedures, such as curing rabies and radiation
+sickness.
+
+                               PASSIVE SKILLS
+
+Passive Skills activate automatically and require no concentration to use; they
+just 'kick in" at appropriate times.  The more often these skills are used
+successfully, the more highly developed they will become.  Passive skill levels
+usually begin at level 1, and can increase by 1 level for each point of AP over
+15 a PC or NPC has.
+
+Gunsmith:
+Repair everything from antique shootin' irons to automatic weapons.  Also
+necessary to unjam weapons.
+
+Perception:
+Awareness of your surroundings.  High Perception makes the smallest detail
+
+obvious:
+The locked drawer under the desk, or the crease in the wall that indicates the
+presence of a secret door.  You'll always want someone with a high Perception
+score in your party unless you think poverty is ennobling.
+
+
+
+Stealth:
+Move about silently and/or undefected.
+
+Language:
+Speak, parlez, sprechen, and habla foreign languages and dialects.
+
+Demolitions:
+Knowledge of explosives, how to use them and how to identify them.
+
+Hand to Hand:
+Proficiency in unarmed combat.  This skill is modified by ST and DX.  If your ST
+and DX are both high, you'll box like a champ; if they are both low, get
+yourself a weapon.
+
+Blades:
+Fighting skill with the numerous sharp and pointy objects found throughout
+Florida, from carving knives to machetes.
+
+Handgun:
+Skill in the use of all handguns, automatic and otherwise.
+
+Single Fire Rifle:
+Skill with old-fashioned single-chambered long guns.  They're antiques but
+they're better than nothing.
+
+Automatic Weapon:
+Skill with automatic and semi-automatic firearms other than handguns. (The ban
+on them has sort of lapsed.)
+
+Swim:
+Treading water in the direction you desire.  In Florida, you better be able to
+do this fast if you do it at all.
+
+Evasion:
+Getting out of somebody's way in a fight.
+
+Mutations:
+Mutations became common in  Florida  after The Change. Since most radioactive
+hotspots have cooled down, the majority of mutations result from exposure to
+"mutagens"  carried by the bites or stings of mutated predators & scavengers.
+Being a mutant entails a balance of advantages and disadvantages. The advantages
+are the useful mutations described in this section; the disadvantages are the
+impairment of limbs,  sensory  organs, and/or other body parts every mutant
+suffers.  These physical impairments result in lowered Attributes; facial
+mutations lead to lessened CH, mutated limbs result in lowered DX, etc.
+
+Mutations do increase in level, but not in the way Skills do.  Mutations do not
+increase in level with use; rather, a mutated PC or NPC  must  be  re-exposed
+to mutagens. This may increase the level of an already present mutation, or it
+may cause an altogether different one to emerge.
+
+ACTIVE MUTATIONS
+Like Active Skills, Active Mutations are activated by concentration.
+
+
+Chameleon is a limited form of  shapechanging  whereby  one  or  more  parts  of
+the  body can be altered.  Such a change can be as minute  and  intricate  as
+changing one's  finger or palmprints.
+
+Corruption makes things break. Any technological or even primitive hand-made
+device william, crack, or otherwise become inoperable.
+
+Paralytic Touch brings an opponent to a standstill.  If you touch an enemy
+during combat, he will be paralyzed for a few rounds.
+
+Stun/Shriek causes paralysis by word of mouth.  A brief aria from the possessor
+of this mutation will cause all hostile creatures within earshot to be stunned
+momentarily and effectively paralyzed.  Stun will affect one hostile group in a
+combat,Shriek will affect multiple groups.
+
+PASSIVE MUTATION
+Camouflage blends in with whatever terrain or background is present.  The blend
+is not a perfect match so the user will still be visible, but much harder to
+hit.
+
+Level and Advancement
+As you adventure throughout Florida, becoming more and more experienced, you
+will find that you are becoming hardier and more adept.  This is represented by
+increases in Level you will begin at level 1, and gain higher and higher levels
+as you do battle and solve problems.  The benefits of higher levels are
+increased CON and Max CON and higher Attributes.  With each level you are
+awarded 2 points to distribute among your Attributes; you can assign the 2
+points to the same Attribute, or divide them.  These 2 points must be used as
+you get them; you can't save them up, and you can't continue the game until you
+distribute them.
+
+The Party & Recruitment
+That corny pre-Change line about safety in numbers is true.  Wandering around
+Florida alone, whether strolling down a decaying Miami street or slogging
+through a weed choked Glades backwater, is asking for it.  An adventuring party
+where each member supports the others is the only sane way to explore the Island
+of Florida.
+
+A party can have up to 5 members: The 3 you create at the beginning, called
+Player Characters (PCs), and 2 more recruited from the people you'll meet along
+the way called Non-Player Characters (NPCs).  Or, 2 members of your party  can
+be  PCs  while  3 are NPCs, or your can have 1 PC and 4 NPCs, or if all your PCs
+die, your entire party can be NPCs.  But you must have at least 1 PC to begin
+the game.
+
+You can view your party at any time during the journey by pressing A to call up
+the Character Roster screen.  Or you can view individual PCs or NPCs by pressing
+F1 - F5.
+
+Keep in mind that not everyone you meet will be enthusiastic about the prospect
+of spending an extended amount of time with you  shooting  things.  Some  people
+encounter all the adventure they con take just living day to day.  But also keep
+in mind that people change their minds.  Just because an NPC turns down your
+offer of camaraderie once, or even several times, doesn't mean they always will.
+Someone in your party may do, buy, or find something that will make such an
+offer more appealing to the offeree.
+
+
+
+
+
+
+There are more recruitable NPCs in Fountain of Dreams than there are roster
+spots to be filled.  If you meet an NPC whom you want to join the party for a
+short time, but you don't want to just kiss off a reliable old NPC or PC for
+good, there are several places in the game where you can "store" PCs and NPCS.
+You will probably encounter one such place very early in the game; the rest are
+harder to find, and become 'storage areas" only after certain conditions are
+met. There is no time limit to how long you can store a PC or NPC, except for
+one place where ... well, you'll find out.
+
+                               GAMEPLAY
+
+Saving And/Or Quitting
+If you want to quit playing or save your game (or both) press Q.
+The Quit/Save Option Screen will then appear with these options:
+
+ To Quit the program without saving and return to DOS, press 1.
+ To Quit but save your present game and return to DOS, press 3.
+ To Save but go on playing Fountain of Dreams, press 5.
+ If you just want to go on playing and you're sorry you ever pressed Q in the
+ first place, press N for "Nevermind."
+
+Note On Saving
+Fountain of Dreams is a very dynamic program and it is important that you
+understand how it saves and keep trachs of the game.  The game changes as you
+play it and updates changes to the disk permanently.  If you take an item, it
+won't be there again when you come back.  If you kill the wrong person, they
+won't be resurrected just because you leave and come back.
+
+Fountain of Dreams takes place in many locations.  As you explore, you'll
+frequently be asked "Enter New Location (N/Y)?" If you answer "yes," the game
+will save any changes to the location where you just were, as well as any
+changes to your party's status; it will become your new saved game status.
+
+
+
+You should Save your game before ending each session. Then when you recommence
+ playing, you can pick up again where you left off.  However, if your computer
+was somehow shut down before you could Save, the computer will return to the
+last place it saved when you restart the game.
+
+Character Options
+Press the first letter of an option to use it.
+
+  up & down Arrow Keys scroll through long inventory lists; an  arrow  will
+appear  beside  the inventory list if it is long enough to scroll through.
+Press an item's number in the list to select it.
+
+left & right Arrow Keys scroll through a character's or NPC's Inventory and
+Active Skills.
+
+Use a a selected item or an Active Skill.  To use an item, use the up & down
+Arrow Keys to scroll through a PC's or NPC's Inventory (if necessary) and press
+the number corresponding to the item you want to use.  To use an Active Skill,
+use the left  or right Arrow Keys to select the Active Skills list, and press
+the number corresponding to the Active Skill you want to use.
+
+Ingest (eat or drink ) a selected item; it will then disappear from the game.
+Press  the Function key, F1 - F5, that corresponds to the PC or NPC you want to
+Ingest the item.
+
+Equip-Unequip Weapon changes weapons; press the number corresponding to the
+weapon you want to equip or unequip.
+
+Load/unjam reloads an unloaded weapon or unjams a jammed one.
+
+Trade an item between members of your party.  Press the number corresponding to
+the item you wish to Trade, and Press Fl through F5  to  indicate  which  NPC
+you want to trade the item to.  If an NPC is Trading an item with your player
+character, press F1 when you are asked who you are trading the item to.
+
+Drop a selected item from your inventory.  Press the number corresponding to the
+item you wish to drop.  Note that when an item is dropped, it is dropped from
+the game permanently.
+
+Missile Combat is combat using ranged weapons, such as rifles or pistols, or
+area of effect weapons, including all explosives.
+
+                               Combat Commands
+Run:
+Try to either Flee from or Get Closer to an opponent.If you choose to Flee,
+press  the Arrow key indicating in which direction you wisk to skedaddle.  If
+any member of an adventuring party uses a Run command, that command will cancel
+all other commands chosen by other members of the party.
+
+Evade:
+Try to evade an attack.  This  command  can  also  be  used  when  a  PC  or
+NPC  is  out of range to attack opponents while  other  PCs  or  NPC's  are
+attacking  with  ranged  or  area effect weapons.
+
+Attack:
+Attack an opponent or opponents during combat.  If facing more than one
+opponent, or more than one group of opponents, choose who you wisk to attack by
+pressing the number corresponding to your selected target(s). You will have
+these  options when you use an automatic weapon:
+
+  Single:    Fire a single bullet at your selected target.
+
+  Burst:     Fire a burst of several bullets at your selected target.  It is
+             possible you may hit more than one target when using this option,
+             including targets you did not select.
+
+  Full Auto: Fire an entire clip at your selected target. it is possible you may
+             kit more than one target when using this option, including targets
+             you did not select.  Note that this using this option leaves your
+             weapon unloaded.
+
+ Unjam/Load: Reload or unjam a weapon.  Note that if a weapon is not empty and
+             you Load it, the ammunition already in the weapon will be lost.
+
+ Weapon:     Change weapons during combat.  Your weapon inventory list will
+             appear after you have chosen this option; press the number
+             corresponding to the weapon you want to change to, and it will
+             automatically be equipped.  Note that when you change weapons, you
+             cannot attack until the next round.
+
+
+
+ Use:        Use a skill or an item other than a weapon (except explosives).
+             When you Use an item, a submenu of commands appears:
+             Use the item or skill; press the appropriate arrow key to indicate
+             in which direction you wish to use it, or press the Spacebar to use
+             the item or skill in the space where the user is standing. Drop the
+             item. Don't try to recover Dropped items later; for purposes of the
+             game, a Dropped item ceases to exist.
+Trade the item to someone in your party; press Fl -F5 to indicate which member
+of the party you want to give the item to.
+
+Pres Esc to cancel any command.
+Press , to speed up the text scrolling rate in combat, press .  to slow it down.
+
+
+                             Weapons and Explosives
+Florida is blessed (so to speak) with a wide variety of weapons.  You may (and
+probably will) encounter customized weapons that do not adhere to these
+specifications.
+
+  Blades                        Damage
+  Cane   knife                  7-15
+  Carving knife                 6-13
+  Machete                       10-18
+  Meat cleaver                  7-15
+  Scalpel                       9-20
+
+  Miscellaneous
+  Pool   Cue                    3-10
+
+  Firearms              Range               Ammo                    Damage
+  .22 handgun           short                .22                     6-15
+  .38 police special    short                .38                     6-18
+  .45 Colt pistol       short                .45                     10-19
+  9 mm Browning         short                9mm                     11-21
+  Shotgun               medium               Shotgun shells          15-25
+  Elephant Gun          medium               .50                     15-25
+  Remington 700 rifle   long                 7.62 mm                 8-22
+  Uzi                   long                 9mm                     14-23
+  Clown MegaUzi         long                 9   mm                  14-23
+  MAC10                 long                .45 or 9 mm        12-22 or 14-23
+  AK-47                 long                 7.62 mm                 16-28
+  M16Al Assault rifle   long                 5.56 mm                 9-24
+
+
+  Ammunition clips come in these sizes:
+
+  Type                      Bullets/Shells per clip
+  .45                       7, 30
+  9mm                       13, 30, 40
+  5.56                      20, 30
+  7.62                      5, 18, 30
+  Shotgun Shells            6
+
+  Exlosives                 Range                   Damage
+  TNT                       medium                  20-40
+  Plastic Explosive         medium                  40-60
+  Grenade                   short                   30-50
+
+Armor:
+Armor is a precious commodity in the predatory milieu of Florida.  Some of it
+you can buy for a reasonable price; acquisition of the more effective varieties
+requires long negotiations involving bloodshed, mayhem, and other rhetorical
+devices. There are three types of standard armor, as described below.
+Additionally there are other modified or unique one-of-a-kind protective
+devices. While highly prized, protective gear of the latter sort is rare and
+little seen. The only way to ascertain their effectivness and resilience is to
+try them on and pick a fight.
+
+
+Armor Class (AC)  determines the quality of a suit of armor.  The higher the AC,
+the stronger and more protective the armor is.
+
+Minimum/Maximum (MIN MAX)  tells how much damage a particular kind of armor will
+absorb from any single attack. Any kind of armor vests, suits, caps, and helmets
+can absorb some damage every round.
+
+                            AC          MIN         MAX
+  HELMETS
+  Leather Cop               1           1           2
+  Riot Helmet               2           2           4
+  Kevlar Derby              2           2           4
+  VESTS
+  Leather Vest              1           1           2
+  Flak Vest                 3           3           6
+  Shagreen Vest             2           2           4
+  Kevlar  Vest              4           4           8
+
+
+
+                     AC         MIN         MAX
+     ARMOR
+  other Suit          2          2           4
+shagreen Suit         3          3           6
+ kevlar Suit          4          4           1 2
+  adsuit              5          5           1 5
+
+
+multiple Armor:
+one helmet, one vest/jacket, and one type of body armor can all be worn at the
+same time.  Wearing multiple armor has cumulative AC and damage absorption
+effects.  For example, wearing a Leather Cap, Leather Vest, and Leather Suit
+lives the wearer AC 4 and will absorb 6-18 points of damage.
+
+Character Creation
+You can create up to 3 Player Characters (PCs) at the beginning of Fountain of
+Dreams with the Character Creation Option Screen.  You must create at least 1
+PC to begin the game, and you can create PCs only bcfore you have bcgun the
+game.  Your PCs, along with any Non-Player Characters (NPCS) you recruit
+along the way, will constitute your adventuring party.
+
+A       Add or create a PC.  Choose the PC's profession, name, and sex, and
+        have distributed Bonus Attribute Points. (See the Fountain of Dreams
+        manual for specific instructions).  Then press ESC to retum to the
+        Character Creation Option Screen.
+
+E       Edit an already created PC's Attributes, Profession, Name, or Sex.
+        You can Edit PCs only before you have begun to play the game.  When
+        you have finished editing a PC, press ESC to retum to the Character
+        Creation Option Screen.
+
+R       Remove a PC.  You can Remove a PC only before the game has begun.
+        A removed PC cannot be recovered.
+
+p       Begin playing Fountain of Dreams.
+
+1-5     Adjust a PC's CON.  A PC's CON (Constitution) is the amount of
+        damage a PC can take before becoming unconscious.  You can adjust
+        this to a higher or lower number by pressing the number correspond-
+        ing to the PC's Profession (1 for a Survivalist, 2 for a Vigilante, 3
+        for a Medic, 4 for a Hood, and 5 for a Mechanic).  You can continue
+        adjusting a PC's CON until you get the CON you want.
+
+
+
+
+General Gameplay Commands
+Party Movement is controlled by the Arrow keys (T c- I ->) on the keypad.
+These keys control all movement, including overland travel, swimming, and
+climbing.
+
+A       Call up the Character Roster Screen.
+
+F1-F5  Call up individual PC and NPC Character Screens.
+
+E       Force an Encounter with an NPC  or  monster.  This  command  is  avail
+        able when there is an NPC or monster visible on the screen that is not
+        currently involved in an Encounter with the adventuring party.
+
+Esc     Cancel text messages.
+
+Character Commands
+
+Attributes
+To use an Attribute, press the Function key (Fl-F5) corresponding to the PC or
+NPC of your choice.  Press the first letter of the Attribute, then prcss the
+appropriate Arrow key              to indicate in which direction you want the
+PC or NPC to use the attribute, or press the Spacebar if you want the PC or
+NPCs to use the attribute in the space he's in.
+
+Items
+Press Fl through F5 to call up the Character Screen of the PC or NPC you want
+to use an item in his inventory.  Use the Up and Down arrow keys (TI ) to
+scroll through the PC's or NPC's inventory, and then press the  number  of  an
+item to select it.
+
+U       Use the item.  Indicate in which direction you want to Use the item by
+        pressing the appropriate Arrow key, or press thespacebar if you want
+        the character to use the item in the space where he is standing.  Some
+        items that operate at a distance use a crosshair for aiming.  Position
+        the crosshair with the cursor keys and press Retum to use the item.
+
+T       Trade the item.  Press the number, FI-F5, corresponding  to  the  party
+        member to whom you want to Trade the item.
+
+I       Ingest (drink or cat) an item.  This command is available only for items
+        that are edible.
+
+E       Equip or unequip armor or a weapon.
+
+L       Load or unjam a weapon.
+
+D       Discard an item.  Once an item is discarded, it is gone forever.
+
+Esc    Cancel a command.
+
+Skills & Mutations
+Use the Left or Right Arrow keys to select the AcTive Skills & Mutations list.
+Press the number of the Active Skill or Mutation that you want to use.If you are
+using the skill or mutation on a party member, press the Function key (F1-F5)
+that corresponding to that party member. If you are using a skill or mutation on
+an object or area, press the Arrow key (left,right,up,down) indicating in which
+direction you want the party member to use the skill or mutation. Press the
+Spacebar if you want the party member to use the skill or mutation in the space
+where he is standing.
+
+
+
+Character Roster Options
+These options are available when the Character Roster Screen is up; press A to
+bring up this screen.
+
+R      Reorder the character roster.  Press the Function key (Fl-F5) corre-
+       sponding to the PC or NPC you want to be first in order, then the
+       Function key of the PC or NPC you want to be second, then third, etc.
+B      Banish a PC or NPC.  Once a character is discarded in this way, he is
+       gone forever.
+L      Leave the Character Roster Screen and return to the game.
+
+Encounter Options
+H      Hire.  Ask an NPC to join your party.
+
+L      Leave an encounter.
+
+A      Attack.  Initiate combat.  This will bring up the Combat screen.
+
+U      Useanitem.PressFlthroughF5toselectwhichparty  memberyou
+       want to use an item; then use the Up and Down Arrow keys ( TI) to
+       scroll through that character's Inventory.  Press the number next to an
+       item to select it to Use.
+
+ESC    Cancel any command.
+
+Combat Commands
+E       Evade opponent(s) during combat; this decreases your chances of
+        being hit.
+
+A       Attack an opponent.  Choose the opponent or group you wish to attack
+        by pressing the number that corresponds  to  that  opponent  or  group.
+
+S       Single fire from an automatic weapon; this uses one bullet.  This
+        command is  available  only  when  an  automatic  weapon  is  equipped.
+
+B       Burst of fire from an automatic weapon; this uses several bullets.  This
+        command is  available  only  when  an  automatic  weapon  is  equipped.
+
+F       Full automatic fire from an automatic weapon; this uses an  entire  clip
+        of bullets.  This command is available only when an automatic weapon
+        is equipped.
+
+L       Load an empty weapon or unjam a jammed one.
+
+W       Switch Weapons.  Press  the  number  corresponding  to  the  weapon  you
+        want the PC or NPC to switch  to;  the  new  weapon  will  automatically
+        be equipped.
+
+U       Use an item, Skill, or Mutation.
+
+D       Drop an item.  Don't try to recover Dropped items  later;  for  purposes
+        of the game, a Dropped item ceases to exist.
+
+T       Trade an item to between party;  press  Fl-F5  to  indicate  which  mem
+        ber of the party you want to give the item to.
+
+Esc     Cancel any individual party member's command.
+
+Y       Use all selected commands
+
+N       Cancel all selected commands
+        Speed up message scrolling
+        Slow down message scrolling
+

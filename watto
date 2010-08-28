@@ -1,0 +1,209 @@
+#!/usr/local/bin/perl
+use strict;
+use vars qw($channel %data $irc $conn);
+use Net::IRC;
+use lib qw(/home/nandu/projects/07_watto);
+#require 'nick_canon.pl';
+
+my (@zippy) = 
+  (
+   "I am a traffic light, and Alan Ginsberg kidnapped my laundry in 1927!",
+   "I'm a GENIUS!  I want to dispute sentence structure with SUSAN SONTAG!!",
+   "Now I'm telling MISS PIGGY about MONEY MARKET FUNDS!",
+   "I have a VISION!  It's a RANCID double-FISHWICH on an ENRICHED BUN!!",
+   "My pants just went on a wild rampage through a Long Island Bowling Alley!!",
+   "I always liked FLAG DAY!!",
+   "I will establish the first SHOPPING MALL in NUTLEY, New Jersey...",
+   "I used to be STUPID, too..before I started watching UHF-TV!!",
+   "I smell like a wet reducing clinic on Columbus Day!",
+   "Just walk along and try NOT to think about your INTESTINES being almost FORTY YARDS LONG!!",
+   "It's the RINSE CYCLE!!  They've ALL IGNORED the RINSE CYCLE!!",
+   "Yow!  It's some people inside the wall!  This is better than mopping!",
+   "Is the EIGHTIES when they had ART DECO and GERALD McBOING-BOING lunch boxes??",
+   "This PIZZA symbolizes my COMPLETE EMOTIONAL RECOVERY!!",
+   "I call it a \"SARDINE ON WHEAT\"!",
+   "Is it FUN to be a MIDGET?",
+   "Someone in DAYTON, Ohio is selling USED CARPETS to a SERBO-CROATIAN!!",
+  );
+
+my (@quote_requests) = (
+			"Sorry, %s, I don't do requests.",
+			'What am I, your mom?  Do it yourself, %s.',
+			"Right, %s, *I'm* gonna quote %s just for you.",
+		       );
+
+my (@sarcasm) = (
+		 'I used to be stupid, too...',
+		 'Just stop talking to me.',
+		 "You're bothering me.",
+		 "Is it just me, or is everyone amused by what %s just said?",
+		 );
+		 
+
+my ($nandu, %st_memory);
+
+$channel = shift;
+print "channel: $channel\n";
+$irc = new Net::IRC;
+$conn = $irc->newconn(Nick => 'watto',
+		      Server => 'irc.cimedia.com',
+		      Port => 6667,
+		      Ircname => 'I am in development',
+		     );
+    
+$conn->add_handler(['376', '422'], \&on_connect);
+$conn->add_handler('public', \&on_public);
+$conn->add_handler('msg', \&on_msg);
+$conn->add_global_handler(353, \&on_names);
+$irc->start;
+
+sub on_connect 
+{
+    my $self = shift;
+    print "Attempting to join $channel\n";
+    $self->join("$channel");
+}
+
+sub on_address {
+    
+}
+
+sub on_public {
+    my ($self, $event) = @_;
+    my ($nick) = $event->nick;
+    my ($arg) = $event->args;
+    my ($num) = rand ();
+    my (@stuff) = (@quote_requests, @sarcasm);
+    my ($msg);
+    
+    if ($num < .01) {
+	if ($num < .005) {
+	    $self->privmsg ($channel, "you got *that* right\n");
+	}
+
+	else {
+	    $self->privmsg ($channel, $zippy[rand (@zippy)]);
+	}
+    }
+
+    elsif ($arg =~ /^watto/i) {
+	if ($arg =~ /quote\s+(.+)/) {
+	    $msg = sprintf ($stuff[rand (@stuff)], $nick, $1);
+	    $self->privmsg ($channel, "$msg\n");
+	}
+
+	elsif ($nick eq 'sitio') {
+	    if ($arg =~  /(a|an|the|these|those)\s+
+		          (\w+)\s+
+                          (is|are)\s+
+                          (.+)?
+                          (,|\.|;|\?|\!)/ix) {
+		$msg = "Right, sitio, \L$1\E *$2* $3 $4";
+	    }
+
+	    elsif ($arg =~ /(i\'m|i am)\s+(.+?)(,|\.|;|\?|\!)/i) {
+		$msg = "Right, *you* are $2";
+	    }
+
+	    else {
+		undef ($msg);
+	    }
+
+	    $self->privmsg ($channel, $msg) if rand () < .1;
+	}
+
+	else {
+	    $self->privmsg ($sarcasm[rand (@sarcasm)]);
+	} 
+    }
+}
+
+sub on_names
+{
+    my ($self, $event) = @_;
+    my (@list) = $event->args ();
+
+    print "names? @list\n";
+}
+
+sub on_msg
+{
+    my ($self, $event) = @_;
+    my ($nick) = $event->nick ();
+    my ($args) = $event->args ();
+    my (@x, $file);
+
+
+    # how do we know who the REAL nandu is?
+    # issue a challenge that only the real nandu could answer
+    if ($args eq "Watto, it's me") {
+	$st_memory{'challenge_nandu'}++;
+	$st_memory{'nandu_nick'} = $nick;
+	$^T = time;
+	$self->privmsg ($nick, "How can I be sure?\n");
+    }
+
+    elsif ($nick eq $st_memory{'nandu_nick'} and 
+	   $st_memory{'challenge_nandu'} and $args =~ /^because/i) {
+	($file) = $args =~ /^because I just made (.+)/i;
+	print "$file $^T ", -M $file, "\n";
+	if ((-e $file) and (-M $file < 0)) { 
+	    $self->privmsg ($nick, "One can never be too sure\n");
+	    $nandu = $nick;
+	}
+
+	else {
+	    $self->privmsg ($nick, 
+			    "Impostor!  This incident will be noted.\n");
+	    
+	}
+
+	delete ($st_memory{'challenge_nandu'});
+	delete ($st_memory{'nandu_nick'});
+    }
+
+    elsif ($nick eq $nandu) {
+	if ($args =~ /say (.+)/i) {
+	    $self->privmsg ($channel, "$1\n");
+	}
+
+	elsif ($args =~ /zwrite (\S+) (.+)/) {
+	    system ('/usr/local/bin/zwrite', $1, '-m', $2);
+	}
+
+	elsif ($args =~ /who the fuck is (.+)/) {
+	    @x = $self->who ($1);
+	    print "@x\n";
+	}
+    }
+
+    else {
+	$self->privmsg ($nick, $zippy[rand (@zippy)]);
+    }
+}
+
+
+
+sub pick_a_word {
+    my $self = shift;
+    
+    if (not defined $data{'num_words'}) {
+	my ($num_words) = `/usr/bin/wc -l /usr/dict/words` =~ m%(\d+)%;
+	$data{num_words} = $num_words;
+    }
+    
+    my $line_num = int(rand $data{'num_words'});
+    my $msg = "Ok, i'll pick the word on line $line_num\n";
+    $self->privmsg("$channel", "$msg");
+    open DICT, '</usr/dict/words' or 
+      $self->privmsg($channel, "Can't open my dictionary");
+    for (my $i=0; $i < $line_num; $i++) {
+	my $toss_word = <DICT>;
+    }
+    my $word = <DICT>;
+    close DICT;
+    $self->privmsg($channel, "My word is $word\n");
+    $data{'my_word'} = $word;
+}
+
+

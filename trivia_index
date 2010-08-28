@@ -1,0 +1,14 @@
+#!/usr/local/bin/perl
+
+open (QUOTES, '/usr/local/share/imdb/trivia.list');
+while (<QUOTES>) {
+    next unless /^\#/o;
+    ($title) = /^\# (.+) \(\d{4}/;
+    if ($title =~ /^("?)(.+), the("?)$/i) {
+	$title = "$1The $2$3";
+    }
+
+    print tell (QUOTES) - length ($_), " $title\n";
+}
+
+close QUOTES;
