@@ -3,17 +3,19 @@
 
 use strict;
 use Socket;
-use vars qw($channel $mynick $data $irc $conn $james);
+use vars qw($channel $mynick $data $irc $conn $james $stfu);
 use lib qw(/home/james/devel/cim/projects/01_olga);
 use Net::IRC;
 use Text::Wrap qw(fill $columns);
 use LWP::Simple;
+use JSON::XS;
+use XML::RSS;
+
 require "movie_quotes.pl";
 require "movie_trivia.pl";
 
 use Data::Dumper;
 
-my $bugs_rss = 'http://jira.ddtc.cmgdigital.com/sr/jira.issueviews:searchrequest-xml/10204/SearchRequest-10204.xml';
 
 $columns = 450;
 
@@ -31,11 +33,7 @@ my (@jayquotes) =
     "Indian food isn't spicy food: it's just bland food with a lot of spices on it...",
   );
 
-my %idletime;
-my $debug = 1;
-my $stfu = 0;
-
-$channel = $ARGV[0]||'#all';
+$channel = "#$ARGV[0]"||'#all';
 $mynick = $ARGV[1];
 print "channel: $channel\n";
 $irc = new Net::IRC;
@@ -48,17 +46,21 @@ $conn = $irc->newconn(Nick => "$mynick",
                       Password => 'xXxXxXxXxXx',
 );
 
-
 $conn->add_handler(['376', '422'], \&on_connect);
 $conn->add_handler('public', \&on_public);
 $conn->add_handler('msg', \&on_public);
 $conn->add_handler('join', \&on_join);
 $conn->add_handler('nick', \&on_nick);
+$conn->add_handler('ping', \&on_ping);
 $conn->add_global_handler(353, \&on_names);
 $irc->start;
 
 sub on_connect {
     my $self = shift;
+
+    # preprocess bugs list
+    process_bugs($self, 1);
+
     print "Attempting to join $channel\n";
     eval { $self->join("$channel"); };
     if ($@) {
@@ -77,6 +79,7 @@ sub on_join {
   if ($event->userhost =~ /(pendingo|james|tmhsiao)/i) {
     $self->mode("$channel", "+o", $event->nick);
   }
+  $stfu = 0;
 }
 
 sub on_nick {
@@ -88,6 +91,12 @@ sub on_nick {
       print "$_\t",${%$event}{"$_"},"\n";
     }
   }
+}
+
+sub on_ping {
+  my ($self, $event) = @_;
+
+  process_bugs($self);
 }
 
 sub on_public {
@@ -102,14 +111,9 @@ sub on_public {
   my $to = ($event->to ())[0];
   $to = $nick if ($to !~ /^\#/);
 
-  # if ($debug) {
-  #  foreach (keys %$event) {
-  #      print "$_\t",${%$event}{"$_"},"\n";
-  #     }
-  # }
-
   if (($type eq "msg") || ($arg =~ /^$mynick/i)) {
-    $arg =~ s/^$mynick,?\s*//;
+    $arg =~ s/^$mynick[,:]?\s*//;
+
     if ($arg =~ /^(stock|quote)\s+(.*)/) {
       if (($1 eq "quote") && ($2 =~ /jay/i)) {
         my @askquotes = @jayquotes;
@@ -132,6 +136,18 @@ sub on_public {
     #   }
     #   $msg = $result[$#result];
     # }
+    elsif ($arg =~ /^bugcount\s*(.*)/) {
+      my $filter = $1;
+      my $count;
+      if ($filter) {
+        $count = scalar(grep {/$filter/i} keys %{$data->{bugs}});
+        $filter .= ' ';
+      }
+      else {
+        $count = scalar(keys %{$data->{bugs}});
+      }
+      $msg = "\U$filter\EBug count at $count\n";
+    }
     elsif ($arg =~ /^mquote (.+)/) {
       my ($quote, $line);
       my ($title, $pos) = find_title_quotes ($1);
@@ -178,14 +194,14 @@ sub on_public {
     #   }
     #   $msg = $result[$#result];
     # }
-    elsif ($arg =~ /^scope\s*(.*)/i) {
-      @result = @{&get_horoscope($1)};
-      for (my $i = 0; $i < $#result;$i++ ) {
-        $self->privmsg($to, $result[$i]);
-        sleep 1;
-      }
-      $msg = $result[$#result];
-    }			#
+    # elsif ($arg =~ /^scope\s*(.*)/i) {
+    #   @result = @{&get_horoscope($1)};
+    #   for (my $i = 0; $i < $#result;$i++ ) {
+    #     $self->privmsg($to, $result[$i]);
+    #     sleep 1;
+    #   }
+    #   $msg = $result[$#result];
+    # }			#
 	# elsif ($arg =~ /^countdown\s+(\d+)/) {
 	#     if ($1 < 180) {
 	# 	sleep $1;
@@ -213,9 +229,9 @@ sub on_public {
       $msg = "$1, ";
       $msg .= &get_abuse();
     }
-    elsif ($arg =~ /^rhetorical(.*)/) {
-      $msg .= q(because they're stupid...);
-    }
+    # elsif ($arg =~ /^rhetorical(.*)/) {
+    #   $msg .= q(because they're stupid...);
+    # }
     elsif ($arg =~ /^morse (.*)/) {
       $msg .= &get_morse($1)
     }
@@ -255,11 +271,11 @@ sub on_public {
       }
       elsif ($arg =~ /^stfu/i) {
         $stfu = 1;
-        $msg = 'okay';
+        $msg = 'Right-o.';
       }
       elsif ($arg =~ /^speak/i) {
         $stfu = 0;
-        $msg = 'okay';
+        $msg = 'Zug-zug.';
       }
       # elsif ($arg =~ /^zwrite (\S+) (.+)/) {
       #   system ('/usr/local/bin/zwrite', $1, '-m', $2);
@@ -327,7 +343,6 @@ sub on_public {
     my $ticket = $1;
     if ($arg !~ m{browse/$1}) {
       # record recent tickets
-      $data->{recent}->{$ticket}->{time} = time();
       $data->{recent}->{$ticket}->{count}++;
 
       # check message type
@@ -351,9 +366,6 @@ sub on_public {
         $self->privmsg($to, "$msg\n") unless ($stfu);
       }
     }
-  }
-  if ($userhost =~ m/hsiao\@(padfoot|biner)/) {
-    $idletime{"$to"} = time();
   }
 }
 
@@ -505,8 +517,6 @@ sub get_morse {
   return $result;
 }
 
-
-
 sub get_horoscope {
   my $inarg = shift;
   $inarg = uc($inarg);
@@ -569,6 +579,23 @@ sub get_abuse {
   my ($insult) = grep {/id="insult"/} split(/\n/,get($url));
   $insult =~ s/<[^>]*>//g;
   return lcfirst($insult);
+}
+
+sub process_bugs {
+  my ($self, $init) = @_;
+
+  my $bugs_rss = 'http://jira.ddtc.cmgdigital.com/sr/jira.issueviews:searchrequest-xml/10204/SearchRequest-10204.xml';
+
+  my $rss = XML::RSS->new;
+  $rss->parse(get($bugs_rss));
+
+  for my $item (@{$rss->{'items'}}) {
+    unless ($data->{bugs}->{$item->{key}}) {
+      $data->{bugs}->{$item->{key}} = $item->{title};
+      $self->privmsg($channel, "New bug! " .
+                     $item->{title} . "\n") unless $init;
+    }
+  }
 }
 
 sub make_connection {
