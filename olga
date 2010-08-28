@@ -1,9 +1,8 @@
 #!/usr/bin/perl -s
-#
 
 use strict;
 use Socket;
-use vars qw($channel $mynick $data $irc $conn $james $stfu);
+use vars qw($channel $mynick $data $irc $conn $james);
 use lib qw(/home/james/devel/cim/projects/01_olga);
 use Net::IRC;
 use Text::Wrap qw(fill $columns);
@@ -11,41 +10,36 @@ use LWP::Simple;
 use XML::RSS;
 use XML::Simple;
 use JSON::XS;
+use Data::Dumper;
 
 require "movie_quotes.pl";
 require "movie_trivia.pl";
 
-use Data::Dumper;
-
-
 $columns = 450;
 
-# my (@jayquotes) = ( "This functionality is dumn and old...quit asking" );
-my (@jayquotes) =
-  ( 'You know what...<bleah>',
-    "I've been with Sheri for nine years, and we're watching what Jackie wants to watch!",
-    "pistachios are the best peanuts there is!",
-    'Hi, Keith, this is Sylvia',
-    "I don't find you at all attractive",
-    'what I mean by that is that I will never, ever, under any circumstances have sex with you',
-    "I don't know how long midnight lasts.",
-    'dammit, i burned my poptarts.',
-    "I'm trying to decide...whether or not to digest.",
-    "Indian food isn't spicy food: it's just bland food with a lot of spices on it...",
-  );
+my @spacerobots =
+(
+ "I am the Pusher robot.",
+ "I am the Shover robot.",
+ "Pushing will protect you from the terrible secret of space.",
+ "Shoving will protect you from the terrible secret of space.",
+);
+
+$data->{userhost} = '(james\@.*\.coxinc\.com|James_Hsi\@.*direcpath.com)';
 
 $channel = "#$ARGV[0]"||'#all';
 $mynick = $ARGV[1];
 print "channel: $channel\n";
 $irc = new Net::IRC;
 $mynick = 'olga' if (!$mynick);
-$conn = $irc->newconn(Nick => "$mynick",
-                      Server => 'irc.cmgdigital.com',
-                      Port => 6667,
-                      Ircname => 'Whatcha lookin at, bichachi?',
-                      Username => "$mynick",
-                      Password => 'xXxXxXxXxXx',
-);
+$conn = $irc->newconn(
+  Nick => "$mynick",
+  Server => 'irc.cmgdigital.com',
+  Port => 6667,
+  Ircname => 'Whatcha lookin at, bichachi?',
+  Username => "$mynick",
+  Password => 'xXxXxXxXxXx',
+  );
 
 $conn->add_handler(['376', '422'], \&on_connect);
 $conn->add_handler('public', \&on_public);
@@ -54,21 +48,25 @@ $conn->add_handler('join', \&on_join);
 $conn->add_handler('nick', \&on_nick);
 $conn->add_handler('ping', \&on_ping, 2);
 $conn->add_global_handler(353, \&on_names);
+
 $irc->start;
 
 sub on_connect {
-    my $self = shift;
+  my $self = shift;
 
-    # preprocess bugs list
-    process_bugs($self, 1);
-    process_fails($self, 1);
+  # preprocess informational svcs
+  &process_bugs($self, 1);
+  &process_fails($self, 1);
 
-    print "Attempting to join $channel\n";
-    eval { $self->join("$channel"); };
-    if ($@) {
-      print "$@";
-    }
-    srand($$);
+  print "Attempting to join $channel\n";
+  eval { $self->join("$channel"); };
+  if ($@) {
+    print "$@";
+  }
+
+  $data->{stfu}->{$channel} = 0;
+
+  srand($$);
 }
 
 sub on_join {
@@ -78,70 +76,57 @@ sub on_join {
   printf "*** %s (%s) has joined channel %s\n",
   $event->nick, $event->userhost, $channel;
 
-  if ($event->userhost =~ /(pendingo|james|tmhsiao)/i) {
+  if ($event->userhost =~ m/$data->{userhost}$/i) {
     $self->mode("$channel", "+o", $event->nick);
   }
-  $stfu = 0;
+}
+
+sub on_names {
+  my ($self, $event) = @_;
+  my (@list) = $event->args ();
+
+  print "names: @list\n";
 }
 
 sub on_nick {
   my ($self, $event) = @_;
   my ($channel) = ($event->to)[0];
 
-  if ($event->userhost =~ /(pendingo|james|tmhsiao|thepeopleseason|jhsiao|tpsreports)/i) {
-    foreach (keys %$event) {
-      print "$_\t",${%$event}{"$_"},"\n";
-    }
+  if ($event->userhost =~ m/$data->{userhost}$/i) {
+    print Dumper($event);
   }
 }
 
 sub on_ping {
   my ($self, $event) = @_;
 
-  print Dumper($event);
-
-  process_bugs($self);
-  process_fails($self);
+  &process_bugs($self);
+  &process_fails($self);
 }
 
 sub on_public {
   my ($self, $event) = @_;
-  my ($nick) = $event->nick;
-  my ($userhost) = $event->userhost ();
-  my ($arg) = $event->args ();
-  my ($type) = $event->type ();
-  my ($msg) = "$nick, ";
-  my @result;
+  my ($nick, $userhost, $arg, $type) =
+    ($event->nick, $event->userhost, $event->args, $event->type);
+  my $msg = "$nick, ";
 
-  my $to = ($event->to ())[0];
-  $to = $nick if ($to !~ /^\#/);
+  my $to;
+  my $channel = ($event->to)[0];
+  if ($type eq 'msg') {
+    $to = $nick;
+  }
+  else {
+    $to = $channel;
+  }
+
+  if (($type eq "msg") && ($userhost !~ m/$data->{userhost}$/i)) {
+    print Dumper($event);
+  }
 
   if (($type eq "msg") || ($arg =~ /^$mynick/i)) {
-    $arg =~ s/^$mynick[,:]?\s*//;
+    $arg =~ s/^$mynick\s*[,:]?\s*//;
 
-    if ($arg =~ /^(stock|quote)\s+(.*)/) {
-      if (($1 eq "quote") && ($2 =~ /jay/i)) {
-        my @askquotes = @jayquotes;
-        $msg .= $askquotes[rand(@askquotes)];
-      }
-      # else {
-      #   @result = @{&get_stockprice($2,5)};
-      #   for (my $i = 0; $i < $#result;$i++ ) {
-      #     $self->privmsg($to, $result[$i]);
-      #     sleep 1;
-      #   }
-      #   $msg = $result[$#result];
-      # }
-    }
-    # elsif ($arg =~ /^(qwhois)\s+(.*)/) {
-    #   @result = @{&get_stockprice($2,9)};
-    #   for (my $i = 0; $i < $#result;$i++ ) {
-    #     $self->privmsg($to, $result[$i]);
-    #     sleep 2;
-    #   }
-    #   $msg = $result[$#result];
-    # }
-    elsif ($arg =~ /^bugcount\s*(.*)/) {
+    if ($arg =~ /^bugcount\s*(.*)/) {
       my $filter = $1;
       my $count;
       if ($filter) {
@@ -151,21 +136,32 @@ sub on_public {
       else {
         $count = scalar(keys %{$data->{bugs}});
       }
-      $msg = "\U$filter\EBug count at $count\n";
+      $msg .= "\U$filter\EBug count at $count\n";
     }
+    elsif ($arg =~ /^(stock|quote)\s+(.*)/) {
+    #   if (($1 eq "quote") && ($2 =~ /jay/i)) {
+    #     my @askquotes = @jayquotes;
+    #     $msg .= $askquotes[rand(@askquotes)];
+    #   }
+      for my $line (split(/\n/, &get_stockprice($2))) {
+        $self->privmsg($to, $line);
+        sleep 1;
+      }
+      undef $msg;
+    }
+    # TODO
+    # elsif ($arg =~ /^(dow|nasdaq|s&p)/i) {
+    #   my %index =
+    #     ( 'dow', '^DJI', 'nasdaq', '^IXIC', 's&p', '^SPX', );
     elsif ($arg =~ /^mquote (.+)/) {
       my ($quote, $line);
       my ($title, $pos) = find_title_quotes ($1);
       if ($title && $pos) {
         ($title, $quote) = pick_quote ($title, $pos);
-        $self->privmsg($to,"$title:\n");
-        foreach $line (@$quote) {
-          $self->privmsg($to, $line);
-          sleep 1;
-        }
+        $msg = "$title:\n" . join(' ', @$quote);
       }
       else {
-        $msg .= "Sorry, $nick.  I missed that one.\n";
+        $msg = "Sorry, $nick.  I missed that one.\n";
       }
     }
     elsif ($arg =~ /^trivia (.+)/) {
@@ -173,40 +169,16 @@ sub on_public {
       my ($title, $pos) = find_title_trivia ($1);
       if ($title && $pos) {
         ($title, $trivia) = pick_trivia ($title, $pos);
-        $self->privmsg($to,"$title Trivia:\n");
-        $msg = "";
-        foreach $line(@$trivia) {
-          $msg .= $line;
-        }
-        @result = split /\n/,fill("","",$msg);
-        for (my $i = 0; $i < $#result;$i++ ) {
-          $self->privmsg($to, $result[$i]);
-          sleep 1;
-        }
-        $msg = $result[$#result];
+        $msg = "$title Trivia:\n" . join(' ', @$trivia);
       }
       else {
-        $msg .= "Sorry, $nick.  No soup for you.\n";
+        $msg = "Sorry, $nick.  No soup for you.\n";
       }
     }
-    # elsif ($arg =~ /^(dow|nasdaq|s&p)/i) {
-    #   my %index =
-    #     ( 'dow', '^DJI', 'nasdaq', '^IXIC', 's&p', '^SPX', );
-    #   @result = @{&get_stockprice($index{"$1"},5)};
-    #   for (my $i = 0; $i < $#result;$i++ ) {
-    #     $self->privmsg($to, $result[$i]);
-    #     sleep 1;
-    #   }
-    #   $msg = $result[$#result];
-    # }
-    # elsif ($arg =~ /^scope\s*(.*)/i) {
-    #   @result = @{&get_horoscope($1)};
-    #   for (my $i = 0; $i < $#result;$i++ ) {
-    #     $self->privmsg($to, $result[$i]);
-    #     sleep 1;
-    #   }
-    #   $msg = $result[$#result];
-    # }			#
+    # TODO: load full file at startup and check on individual in $data
+    elsif ($arg =~ /^scope\s*(.*)/i) {
+      $msg = &get_horoscope($1);
+    }
 	# elsif ($arg =~ /^countdown\s+(\d+)/) {
 	#     if ($1 < 180) {
 	# 	sleep $1;
@@ -216,28 +188,19 @@ sub on_public {
     elsif ($arg =~ /^websters\s+black\s+crappie/) {
       $msg .= q(you can't even do that, so don't even try.);
     }
-    elsif ($arg =~ /^(saurus|roget)\s+([^\s]+)/) {
-      @result = split /\n/,fill("","",@{&roget($2)});
-      for (my $i = 0; $i < $#result;$i++ ) { #
-        $self->privmsg($to, $result[$i]);
-        sleep 2;
-        }
-      $msg = $result[$#result];
+    elsif ($arg =~ /^(saurus|roget)\s+(.*)/) {
+      $msg .= &saurus($2);
     }			#
-    # elsif ($arg =~ /^(handle|moniker)\s+([^\s]+)/) {
-    #   $msg .= &handle($2);	#
-    # }			#
     elsif ($arg =~ /^sniglet(.*)/) {
       $msg .= &get_sniglet($1); #
     }			#
-    elsif ($arg =~ /^abuse ([^ ]*)/) {
-      $msg = "$1, ";
-      $msg .= &get_abuse();
+    elsif ($arg =~ /^abuse\s+([^ ]*)/) {
+      $msg = "$1, " . &get_abuse();
     }
     # elsif ($arg =~ /^rhetorical(.*)/) {
     #   $msg .= q(because they're stupid...);
     # }
-    elsif ($arg =~ /^morse (.*)/) {
+    elsif ($arg =~ /^morse\s+(.*)/) {
       $msg .= &get_morse($1)
     }
     elsif ($arg =~ /^horoscope\s+([^\s]+)/) {
@@ -259,33 +222,23 @@ sub on_public {
         $msg .= ".";
       }
       else {
-        $self->privmsg($to, "Sagittarius: ");
-        $sagscope =~ s/\n//g;
-        @result = split /\n/,fill("","",$sagscope);
-        for (my $i = 0; $i < $#result;$i++ ) {
-          $self->privmsg($to, $result[$i]);
-          sleep 2;
-        }
-        $msg = $result[$#result];
+        $msg = "Sagittarius: $sagscope";
       }
     }
-    elsif ($userhost =~ /(james\@.*\.coxinc\.com|James_Hsi\@.*direcpath.com)$/i) {
+    # master commands
+    elsif ($userhost =~ m/$data->{userhost}$/i) {
       if ($arg =~ /^say (\S+) (.+)/i) {
         $to = $1;
         $msg = $2;
       }
-      elsif ($arg =~ /^stfu/i) {
-        $stfu = 1;
+      elsif (($arg =~ /^stfu/i) && ($type eq 'public')) {
+        $data->{stfu}->{$channel} = 1;
         $msg = 'Right-o.';
       }
-      elsif ($arg =~ /^speak/i) {
-        $stfu = 0;
+      elsif (($arg =~ /^speak/i) && ($type eq 'public')) {
+        $data->{stfu}->{$channel} = 0;
         $msg = 'Zug-zug.';
       }
-      # elsif ($arg =~ /^zwrite (\S+) (.+)/) {
-      #   system ('/usr/local/bin/zwrite', $1, '-m', $2);
-      #   $msg .= "zwrite $1 -m $2";
-      # }
       elsif ($arg =~ /^join (.*)/) {
         $self->join($1);
         $msg .= "joining $1";
@@ -300,55 +253,64 @@ sub on_public {
         $self->mode("$2", "+o", $1);
         $msg .= "op $1 on $2";
       }
+      elsif ($arg =~ /^dumpdata\s*(.*)/) {
+        if ($1) {
+          $to = $nick;
+          $msg = Dumper($data->{$1});
+        }
+        else {
+          print Dumper($data);
+          undef $msg;
+        }
+      }
     }
     else {
       my (@wit) =
         (
          "PAK CHOOIE UNF",
-         "Pushing will protect you from the terrible secret of space",
-         "Shoving will protect you from the terrible secret of space",
          "I'll be in my bunk...",
          "hey, how's it goin?",
          "You know what the chain of command is? It's the chain I go get and beat you with 'til ya understand who's in ruttin' command here.",
         );
+      push @wit, @spacerobots;
       $msg .= $wit[rand(@wit)] if (rand() < .10);
     }
-    $self->privmsg($to, "$msg\n") if $msg ne "$nick, ";
+    &fill_output($self, $msg, $to) unless $msg eq "$nick, ";
   }
   elsif ($arg =~ /^(sudo )?(ls( .*)?|pwd|cd( .*)?|rm( .*)?)$/) {
-    $msg .= "this ain\'t your shell window";
-    $self->privmsg($to, "$msg\n") unless ($stfu);
+    $msg = "this ain\'t your shell window";
+    $self->privmsg($to, "$msg\n")
+      unless ($data->{stfu}->{$channel});
   }
   elsif ($arg =~ /^(\:wq)$/) {
-    $msg .= "this ain\'t your vi";
-    $self->privmsg($to, "$msg\n") unless ($stfu);
+    $msg = "this ain\'t your vi";
+    $self->privmsg($to, "$msg\n")
+      unless ($data->{stfu}->{$channel});
   }
-  # elsif ($arg =~ /^\.$/) {
-  #   $msg = "$nick: Message sent.";
-  #   $self->privmsg($to, "$msg\n");
-  # }
-  # elsif ($arg =~ /i already had it that way/i) {
-  #   my @slut =
-  #     ( "you're a floozie...", 'wench...', "you're a slut...",
-  #       'strumpet...', );
-  #   $msg = $slut[rand(@slut)];
-  #   $self->privmsg($to,"$msg\n");
-  # }
-  # elsif ($arg =~ /It\'s a(n)? [a-z]+ [0-9]+ degrees in (.*),/) {
-  #   if (rand() < 0.45) {
-  #     $msg = "But a Winterfresh $1 tastes much much cooler!";
-  #     $self->privmsg($to,"$msg\n");
-  #   }
-  # }
+  elsif ($arg =~ /PAK.*UNF/) {
+    $msg = $spacerobots[rand(@spacerobots)];
+    $self->privmsg($to, "$msg\n")
+      unless ($data->{stfu}->{$channel});
+  }
   elsif ($arg =~ /pythonpath/i) {
     $msg = "If you're mucking with your PYTHONPATH, you're doing it wrong.";
-    $self->privmsg($to,"$msg\n") unless ($stfu);
+    $self->privmsg($to,"$msg\n")
+      unless ($data->{stfu}->{$channel});
   }
-  elsif ($arg =~ m/((CMS[A-Z]|CHR|GUR|WD|FR|HELPDESK)-[0-9]*)/) {
+  elsif ($arg =~ m/((CMS[A-Z]+|CHR|GUR|WD|FR|HELPDESK)-[0-9]*)/) {
     my $ticket = $1;
     if ($arg !~ m{browse/$1}) {
       # record recent tickets
-      $data->{recent}->{$ticket}->{count}++;
+      my $time = time();
+      if ($time - $data->{recent}->{$ticket}->{time} > 10*60) {
+        $data->{recent}->{$ticket}->{time} = time();
+        $data->{recent}->{$ticket}->{count} = 1;
+      }
+      else {
+        if ($time - $data->{recent}->{$ticket}->{time} < 20) {
+          $data->{recent}->{$ticket}->{count}++;
+        }
+      }
 
       # check message type
       if ($data->{recent}->{$ticket}->{count} > 4) {
@@ -368,123 +330,65 @@ sub on_public {
 
       # output message
       if ($msg) {
-        $self->privmsg($to, "$msg\n") unless ($stfu);
+        $self->privmsg($to, "$msg\n")
+          unless ($data->{stfu}->{$channel});
       }
     }
   }
 }
 
-sub on_names {
-  my ($self, $event) = @_;
-  my (@list) = $event->args ();
+sub fill_output {
+  my ($self, $msg, $to) = @_;
 
-  print "names: @list\n";
+  # kill existing lines
+  $msg =~ s/\n/ /g;
+
+  my @result = split(/\n/, fill('', '', $msg));
+  for my $line (@result) {
+    $self->privmsg($to, $line);
+    sleep 1;
+  }
 }
 
-sub roget {
-  my $inarg = shift;
-  my ($host, $port) = ('www.m-w.com', 80);
-  my ($initial,$final) = ("Synonyms","Related");
-  my @result;
+sub saurus {
+  my @args = @_;
 
-  my $url = qq(/cgi-bin/thesaurus?book=Thesaurus\&va=$inarg);
-  &make_connection($host, $port);
+  my %rtypes = qw( sim similar syn synonyms ant antonyms usr user-submitted );
 
-  select(S); $| = 1;
-  select(STDOUT); $| = 1;
+  my $apikey = q(ab4c2716b98b1c76f4b889014214dadb);
+  my $url = sprintf(qq(http://words.bighugelabs.com/api/2/%s/%s/json),
+                    $apikey, $args[0]
+    );
 
-  print S "GET $url HTTP/1.0\n\n";
+  my $hash = decode_json(get($url));
 
-  while(<S>) {
-    next unless (m/$initial/);
+  my $result = "$args[0]: ";
+  for my $key (keys %$hash) {
+    next if $args[1] && $key ne $args[1];
 
-    s/Text.\s+//;
-    s/<b>(.*?)\s*<\/b>/\U$1\E: /g;
-    s/\s+/ /g;
-    s/<BR>/ /gi;		# kill trailing null values
-    s/<[^>]*>//g;		# kill HTML
-    s/\&(lt|gt);/\"/g;
-
-    push @result,$_;
-  }
-  return \@result;
-}
-
-sub handle {
-  my $inarg = shift;
-  my ($host, $port) = ('www.zelo.com', 80);
-  my ($initial, $final) = ("$inarg","</table>");
-  my ($result);
-
-  my $url = qq(/firstnames/findname.asp?name=$inarg);
-  &make_connection($host, $port);
-
-  select(S); $| = 1;
-  select(STDOUT); $| = 1;
-
-  print S "GET $url HTTP/1.0\n\n";
-
-  while(<S>) {
-    next unless (m/^$initial/i .. m/$final/i);
-
-    chomp($_); chop($_);
-    s/<TD>(.*)<\/TD>\s*$/$1/;
-    s/<TD[^>]*><FONT[^>]*>\s*$//;
-
-    s/<[^>]*>//g;		# kill HTML
-    $result .= $_ unless /^\s*$/;;
-  }
-
-  if (!$result) {
-    $result = "$inarg probably means something to you, but I'm at a loss.";
-  }
-  else {
-    $result =~ s/.*Root: (.*)Origin: (.*)Meaning: (.*)//;
-    $result = "$inarg means \'$3\' and originates from $2.  ";
-    $result .= "$inarg is a variation on \'$1.\'" if $1;
+    for my $type (keys %{$hash->{$key}}) {
+      $result .= "* $rtypes{$type} ($key) - " .
+        join(', ', @{$hash->{$key}->{$type}}) . "\n";
+    }
   }
   return $result;
 }
 
 sub get_stockprice {
-  my ($inarg, $searchType) = @_;
-  my ($host, $port) = ('finance.yahoo.com', 80);
-  my ($initial, $final) = ("Symbol",'</pre><center>');
-  my @result;
+  my ($args) = @_;
 
-  $inarg =~ s/ +/+/g;
+  my $stocks =
+    get(sprintf('http://download.finance.yahoo.com/d/quotes.csv?s=%s&f=snl1c1',
+                join('+', split(/\s/, $args)))
+    );
 
-  my $url = qq(/q?s=) . $inarg . qq(\&o=t\&d=v$searchType);
-  &make_connection($host, $port);
+  $stocks =~ s/,/\t/g;
+  $stocks =~ s/"//g;
 
-  select(S); $| = 1;
-  select(STDOUT); $| = 1;
+  return $stocks;
 
-  print S "GET $url HTTP/1.0\n\n";
+  print $stocks;
 
-  while(<S>) {
-    next unless (/^$initial/ .. /$final/);
-    if (m/(No such ticker symbol)/) {
-      push @result, $1;
-    }
-    else {
-      s/<[^>]*>//g;	# kill HTML
-      s/\n/END/;		# kill EOL
-      s/(\-\s+)+//;	# kill trailing null values
-      s/\s+/  /g;		# replace extensive whitespace
-      s/$initial.*$//;	# remove initial line
-      s/($inarg)\s+/$1  /i; # pretty print
-      s/END/\n/;
-
-      # change index names
-      s/\^DJI/Dow/;
-      s/\^IXIC/Nasdaq/;
-      s/\^SPX/S&P/;
-
-      push (@result, $_) unless /^\s*$/;
-    }
-  }
-  return \@result;
 }
 
 sub get_morse {
@@ -523,31 +427,19 @@ sub get_morse {
 }
 
 sub get_horoscope {
-  my $inarg = shift;
-  $inarg = uc($inarg);
-  my ($host, $port) = ('www.freewillastrology.com', 80);
-  my $res_string;
-  my @result;
+  my $sign = shift;
+  my $output;
 
-  my $url = qq(/pages/allsigns_to.shtml);
-  &make_connection($host, $port);
+  my $page =
+    get(q(http://www.freewillastrology.com/horoscopes/printer-friendly.html));
 
-  select(S); $| = 1;
-  select(STDOUT); $| = 1;
-
-  print S "GET $url HTTP/1.0\n\n";
-
-  while(<S>) {
-	next unless (m%<A NAME="$inarg">% ... m%<A NAME%i);
-	s/\n//g;
-	$res_string .= $_ unless /^\s*$/;
+  for my $line (split(/\n/, $page)) {
+	next unless ($line =~ m/div class="body-bold">$sign/i ..
+                 $line =~ m%<p>%i);
+    $line =~ s/<[^>]*>//g;
+    $output .= $line;
   }
-  $res_string =~ s/<[^>]*>//g;	# kill HTML
-  if ($res_string =~ m/Content-Type/) {
-    $res_string =~ s/.*$inarg \(/$inarg \(/;
-  }
-  @result = split /\n/,fill("","",$res_string);
-  return \@result;
+  return $output;
 }
 
 sub get_sniglet {
@@ -597,7 +489,7 @@ sub process_bugs {
   for my $item (@{$rss->{'items'}}) {
     unless ($data->{bugs}->{$item->{key}}) {
       $data->{bugs}->{$item->{key}} = $item->{title};
-      $self->privmsg($channel, "New bug! " .
+      $self->privmsg($channel, "New bug! (cmheisel made me do it) " .
                      $item->{title} . "\n") unless $init;
     }
   }

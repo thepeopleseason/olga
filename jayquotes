@@ -1,0 +1,13 @@
+# my (@jayquotes) = ( "This functionality is dumn and old...quit asking" );
+my (@jayquotes) =
+  ( 'You know what...<bleah>',
+    "I've been with Sheri for nine years, and we're watching what Jackie wants to watch!",
+    "pistachios are the best peanuts there is!",
+    'Hi, Keith, this is Sylvia',
+    "I don't find you at all attractive",
+    'what I mean by that is that I will never, ever, under any circumstances have sex with you',
+    "I don't know how long midnight lasts.",
+    'dammit, i burned my poptarts.',
+    "I'm trying to decide...whether or not to digest.",
+    "Indian food isn't spicy food: it's just bland food with a lot of spices on it...",
+  );
