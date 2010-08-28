@@ -1,508 +1,489 @@
-#!/usr/local/bin/perl -s
+#!/usr/bin/perl -s
 #
 
+use strict;
 use Socket;
-use strict; 
-use vars qw($channel $mynick %data $irc $conn $james);
-use lib qw(/home/hsiao/sys/perl/lib /home/hsiao/projects/01_olga);
+use vars qw($channel $mynick $data $irc $conn $james);
+use lib qw(/home/james/devel/cim/projects/01_olga);
 use Net::IRC;
-use Text::Wrap qw(fill $columns); 
+use Text::Wrap qw(fill $columns);
+use LWP::Simple;
 require "movie_quotes.pl";
-require "movie_trivia.pl"; 
+require "movie_trivia.pl";
+
+use Data::Dumper;
+
+my $bugs_rss = 'http://jira.ddtc.cmgdigital.com/sr/jira.issueviews:searchrequest-xml/10204/SearchRequest-10204.xml';
 
 $columns = 450;
 
 # my (@jayquotes) = ( "This functionality is dumn and old...quit asking" );
-	   
+my (@jayquotes) =
+  ( 'You know what...<bleah>',
+    "I've been with Sheri for nine years, and we're watching what Jackie wants to watch!",
+    "pistachios are the best peanuts there is!",
+    'Hi, Keith, this is Sylvia',
+    "I don't find you at all attractive",
+    'what I mean by that is that I will never, ever, under any circumstances have sex with you',
+    "I don't know how long midnight lasts.",
+    'dammit, i burned my poptarts.',
+    "I'm trying to decide...whether or not to digest.",
+    "Indian food isn't spicy food: it's just bland food with a lot of spices on it...",
+  );
+
 my %idletime;
-my $debug = 0;
-$channel = $ARGV[0];
+my $debug = 1;
+my $stfu = 0;
+
+$channel = $ARGV[0]||'#all';
 $mynick = $ARGV[1];
 print "channel: $channel\n";
 $irc = new Net::IRC;
 $mynick = 'olga' if (!$mynick);
 $conn = $irc->newconn(Nick => "$mynick",
-                      Server => 'irc.cimedia.com',
+                      Server => 'irc.cmgdigital.com',
                       Port => 6667,
                       Ircname => 'Whatcha lookin at, bichachi?',
-		      Username => "$mynick",
+                      Username => "$mynick",
+                      Password => 'xXxXxXxXxXx',
 );
+
 
 $conn->add_handler(['376', '422'], \&on_connect);
 $conn->add_handler('public', \&on_public);
 $conn->add_handler('msg', \&on_public);
 $conn->add_handler('join', \&on_join);
-# $conn->add_handler('nick', \&on_nick);
+$conn->add_handler('nick', \&on_nick);
 $conn->add_global_handler(353, \&on_names);
 $irc->start;
 
-sub on_connect 
-{
+sub on_connect {
     my $self = shift;
     print "Attempting to join $channel\n";
-    $self->join("$channel");
+    eval { $self->join("$channel"); };
+    if ($@) {
+      print "$@";
+    }
     srand($$);
 }
 
 sub on_join {
-    my ($self, $event) = @_;
-    my ($channel) = ($event->to)[0];
+  my ($self, $event) = @_;
+  my ($channel) = ($event->to)[0];
 
-    printf "*** %s (%s) has joined channel %s\n",
-    $event->nick, $event->userhost, $channel;
+  printf "*** %s (%s) has joined channel %s\n",
+  $event->nick, $event->userhost, $channel;
 
-    if ($event->userhost =~ /hsiao\@(padfoot|biner)/) {  
-        $self->mode("$channel", "+o", $event->nick);      
-    }
-    if ($event->userhost =~ /(inky|eric)\@cartman/) {  
-        $self->mode("$channel", "+o", $event->nick);      
-    }
+  if ($event->userhost =~ /(pendingo|james|tmhsiao)/i) {
+    $self->mode("$channel", "+o", $event->nick);
+  }
 }
 
 sub on_nick {
-    my ($self, $event) = @_;
-    my ($channel) = ($event->to)[0];
+  my ($self, $event) = @_;
+  my ($channel) = ($event->to)[0];
 
-    if ($event->userhost =~ /hsiao\@(padfoot|biner).cimedia.com/) {  
-	foreach (keys %$event) {
-	    print "$_\t",${%$event}{"$_"},"\n";
-	}
+  if ($event->userhost =~ /(pendingo|james|tmhsiao|thepeopleseason|jhsiao|tpsreports)/i) {
+    foreach (keys %$event) {
+      print "$_\t",${%$event}{"$_"},"\n";
     }
+  }
 }
 
 sub on_public {
-    my ($self, $event) = @_;
-    my ($nick) = $event->nick;
-    my ($userhost) = $event->userhost ();
-    my ($arg) = $event->args ();
-    my ($type) = $event->type ();
-    my ($msg) = "$nick, ";
-    my @result;
+  my ($self, $event) = @_;
+  my ($nick) = $event->nick;
+  my ($userhost) = $event->userhost ();
+  my ($arg) = $event->args ();
+  my ($type) = $event->type ();
+  my ($msg) = "$nick, ";
+  my @result;
 
-    my $to = ($event->to ())[0]; 
-    $to = $nick if ($to !~ /^\#/);
-    
-#    if ($debug) {
-#	foreach (keys %$event) {
-#	    print "$_\t",${%$event}{"$_"},"\n";
-#        }
-#    }
+  my $to = ($event->to ())[0];
+  $to = $nick if ($to !~ /^\#/);
 
-    if (($type eq "msg") || ($arg =~ /^$mynick/i)) {
-	$arg =~ s/^$mynick,?\s*//;
-	if ($arg =~ /^(stock|quote)\s+(.*)/) {
-	    if (($1 eq "quote") && ($2 =~ /jay/i)) {
-		my (@jayquotes) = 
-		    ( 'You know what...<bleah>', 
-		      q(I've been with Sheri for nine years, and we're watching what Jackie wants to watch!),
-		      q(pistachios are the best peanuts there is!),
-		      'Hi, Keith, this is Sylvia',
-		      "I don't find you at all attractive", 
-		      'what I mean by that is that I will never, ever, under any circumstances have sex with you',
-		      "I don't know how long midnight lasts.", 
-		      'dammit, i burned my poptarts.', 
-		      "I'm trying to decide...whether or not to digest.",
-		      "Indian food isn't spicy food: it's just bland food with a lot of spices on it...", 
-		      );
-		my (@lewdjayquotes) = 
-		    ( q(Shut up, bitch! (to his wife)), q(You saw vagina?), 
-		      q(Shut the fuck up! (to his wife)), );
-		my @askquotes = @jayquotes;
-		if ($to eq "#hottub") {
-		    push @askquotes, @lewdjayquotes;
-		}
-		$msg .= $askquotes[rand(@askquotes)];		
-	      }
-	    else {
-	      @result = @{&get_stockprice($2,5)};
-	      for (my $i = 0; $i < $#result;$i++ ) {
-		$self->privmsg($to, $result[$i]);
-		sleep 1;
-	      }
-	      $msg = $result[$#result];
-	    }			# 
-	  }
-	elsif ($arg =~ /^(qwhois)\s+(.*)/) {
-	  @result = @{&get_stockprice($2,9)};
-	  for (my $i = 0; $i < $#result;$i++ ) {
-	    $self->privmsg($to, $result[$i]);
-	    sleep 2;
-	  }
-	  $msg = $result[$#result];
-	}
-	elsif ($arg =~ /^mquote (.+)/) { 
-	  my ($quote, $line);
-	  my ($title, $pos) = find_title_quotes ($1); 
-	  if ($title && $pos) {
-	    ($title, $quote) = pick_quote ($title, $pos);
-	    $self->privmsg($to,"$title:\n");  
-	    foreach $line (@$quote) {
-	      $self->privmsg($to, $line);
-	    }
-	  }
-	  else {
-	    $msg .= "Sorry, $nick.  I missed that one.\n";
-	  }
-	}
-	elsif ($arg =~ /^trivia (.+)/) { 
-	  my ($trivia, $line); 
-	  my ($title, $pos) = find_title_trivia ($1); 
-	  if ($title && $pos) {
-	    ($title, $trivia) = pick_trivia ($title, $pos);
-	    $self->privmsg($to,"$title Trivia:\n");
-	    $msg = ""; 
-	    foreach $line(@$trivia) { 
-	      $msg .= $line;
-	    }
-	    @result = split /\n/,fill("","",$msg); 
-	    for (my $i = 0; $i < $#result;$i++ ) {
-	      $self->privmsg($to, $result[$i]);
-	      sleep 1;
-	    }
-	    $msg = $result[$#result];
-	  }
-	  else {
-	    $msg .= "Sorry, $nick.  No soup for you.\n";
-	  }
-	}
-	elsif ($arg =~ /^(dow|nasdaq|s&p)/i) {
-	  my %index = 
-	      ( 'dow', '^DJI', 'nasdaq', '^IXIC', 's&p', '^SPX', );
-	  @result = @{&get_stockprice($index{"$1"},5)};
-	  for (my $i = 0; $i < $#result;$i++ ) {
-	    $self->privmsg($to, $result[$i]);
-	    sleep 1;
-	  }
-	  $msg = $result[$#result];
-	}
-	elsif ($arg =~ /^scope\s*(.*)/i) {
-	  @result = @{&get_horoscope($1)};
-	  for (my $i = 0; $i < $#result;$i++ ) {
-	    $self->privmsg($to, $result[$i]);
-	    sleep 1;
-	  }
-	  $msg = $result[$#result];
-	}			# 
-#	elsif ($arg =~ /^countdown\s+(\d+)/) {
-#	    if ($1 < 180) {
-#		sleep $1;
-#		$msg .= "this is your reminder.";
-#	    }
-#	}
-	elsif ($arg =~ /^websters\s+black\s+crappie/) {
-	  $msg .= q(you can't even do that, so don't even try.);
-	}			# 
-	elsif ($arg =~ /^(saurus|roget)\s+([^\s]+)/) {
-	    @result = split /\n/,fill("","",@{&roget($2)});
-	    for (my $i = 0; $i < $#result;$i++ ) { # 
-	      $self->privmsg($to, $result[$i]);
-	      sleep 2;
-	    }
-	    $msg = $result[$#result];
-	  }			# 
-	elsif ($arg =~ /^(handle|moniker)\s+([^\s]+)/) {
-	  $msg .= &handle($2);	# 
-	}			# 
-	elsif ($arg =~ /^sniglet(.*)/) {
-	  $msg .= &get_sniglet($1); # 
-	}			# 
-	elsif ($arg =~ /^abuse ([^ ]*)/) {
-	  $msg = "$1, ";
-	  $msg .= &get_abuse();
-	}
-	elsif ($arg =~ /^rhetorical(.*)/) {
-	  $msg .= q(because they\'re stupid...);
-	}
-	elsif ($arg =~ /^morse (.*)/) {
-	  $msg .= &get_morse($1)
-	}
-	elsif ($arg =~ /^horoscope\s+([^\s]+)/) {
-	    my $sagscope = q(Dear Teeth-Shaking, Glass-Breaking,
-		Rump-Roasting Bun-Toasting Flash of Liquid Lightning: I
-		dreamed you finally revealed your secret identity after
-		all these years--you know, about how you came from the
-		planet Lovemania in order to teach all earthlings how to
-		feel horny for clouds, trees, tigers, and even the ocean
-		itself!  Is my dream true? Please say it is!  Tell me
-		you're really ready to drop your overly respectable pose
-		so that you may spread erotic healing throughout the
-		land!  Dare to become the sublimely lustful worshiper of
-		beauty and truth you were born to be!);
+  # if ($debug) {
+  #  foreach (keys %$event) {
+  #      print "$_\t",${%$event}{"$_"},"\n";
+  #     }
+  # }
 
-	    if ($1 !~ /sagittarius/i) {
-		$msg = "$1, you're gonna die";
-		$msg .= " . . . twice" if ($1 =~ /gemini/i);
-		$msg .= ".";
-	    }
-	    else {
-		$self->privmsg($to, "Sagittarius: ");
-		$sagscope =~ s/\n//g;
-		@result = split /\n/,fill("","",$sagscope); 
-		for (my $i = 0; $i < $#result;$i++ ) {
-		    $self->privmsg($to, $result[$i]);
-		    sleep 2;
-		}
-		$msg = $result[$#result];		
-	    }
-	}
-	elsif ($userhost =~ /hsiao\@(padfoot|biner).cimedia.com$/i) {
-	    if ($arg =~ /^say (\S+) (.+)/i) {
-		$to = $1;
-		$msg = $2;
-	    }
-	    elsif ($arg =~ /^zwrite (\S+) (.+)/) {
-		system ('/usr/local/bin/zwrite', $1, '-m', $2);
-		$msg .= "zwrite $1 -m $2";
-	    }
-	    elsif ($arg =~ /^join (.*)/) {
-		$self->join($1);
-		$msg .= "joining $1";
-	    }
-	    elsif ($arg =~ /^deop (\S+) (.+)/) {
-		$to = $2;
-		$self->mode("$2", "-o", $1); 
-		$msg = 'The Lord giveth and the lord taketh away...';     
-	    }
-	    elsif ($arg =~ /^op (\S+) (.+)/) {
-		$to = $nick;
-		$self->mode("$2", "+o", $1); 
-		$msg .= "op $1 on $2";     
-	    }
-	    else {
-		$msg .= 'Whaddaya need, dumnass?';
-	    }
-	}
-	else {
-	    my (@wit) = 
-		( 
-		  q(That's "Olga"; "Ms. Bichachi," if you're nasty.),
-		  q(Wha'hap'n?),
-		  'Got Milk?',
-		  q(hey, how's it goin?),
-                  q(I'm bored; what plaything do you have for me today?),
-		  );			
-	    $msg .= $wit[rand(@wit)] if (rand() < .35);
-	}
-	$self->privmsg($to, "$msg\n") if $msg ne "$nick, ";
+  if (($type eq "msg") || ($arg =~ /^$mynick/i)) {
+    $arg =~ s/^$mynick,?\s*//;
+    if ($arg =~ /^(stock|quote)\s+(.*)/) {
+      if (($1 eq "quote") && ($2 =~ /jay/i)) {
+        my @askquotes = @jayquotes;
+        $msg .= $askquotes[rand(@askquotes)];
+      }
+      # else {
+      #   @result = @{&get_stockprice($2,5)};
+      #   for (my $i = 0; $i < $#result;$i++ ) {
+      #     $self->privmsg($to, $result[$i]);
+      #     sleep 1;
+      #   }
+      #   $msg = $result[$#result];
+      # }
     }
-    elsif ($arg =~ /^(sudo )?(ls( .*)?|pwd|cd( .*)?|rm( .*)?)$/) {
-	$msg .= "this ain\'t your shell window";
-	$self->privmsg($to, "$msg\n");
-    }
-    elsif ($arg =~ /dam(m|n)?it/) {
-	$msg = "Janet!";
-	$self->privmsg($to, "$msg\n");
-    }
-    elsif ($arg =~ /^(\:wq)$/) {
-	$msg .= "this ain\'t your vi";
-	$self->privmsg($to, "$msg\n");
-    }
-    elsif ($arg =~ /^\.$/) {
-	$msg = "$nick: Message sent.";
-	$self->privmsg($to, "$msg\n");
-    }
-    elsif ($arg =~ /freak/) {
-	$msg = "One of us! One of us!";
-	$self->privmsg($to, "$msg\n");
-    }
-    elsif ($arg =~ /^ebug(.*pun)/) {
-	if ((rand() < .15) && ($1 !~ /webster/)) {
-	    $msg = "aaaaaaaaaaaaaaaaaaaaargh";
-	    sleep 2;	
-	    $self->privmsg($to, "$msg\n");
-	}
-    }
-    elsif ($arg =~ m/(dingo|hsiao|james)/) {
-	my $time = scalar localtime; 
-        $msg = "$nick beckons on $to at $time: $arg"; 
-	if ( time() - $idletime{"$to"} > 120 ) { 
-	   system ('/usr/local/bin/zwrite', 'hsiao', '-m', 
-		   "$msg");
-           $self->privmsg("wfhdingo","$msg\n"); 
+    # elsif ($arg =~ /^(qwhois)\s+(.*)/) {
+    #   @result = @{&get_stockprice($2,9)};
+    #   for (my $i = 0; $i < $#result;$i++ ) {
+    #     $self->privmsg($to, $result[$i]);
+    #     sleep 2;
+    #   }
+    #   $msg = $result[$#result];
+    # }
+    elsif ($arg =~ /^mquote (.+)/) {
+      my ($quote, $line);
+      my ($title, $pos) = find_title_quotes ($1);
+      if ($title && $pos) {
+        ($title, $quote) = pick_quote ($title, $pos);
+        $self->privmsg($to,"$title:\n");
+        foreach $line (@$quote) {
+          $self->privmsg($to, $line);
+          sleep 1;
         }
+      }
+      else {
+        $msg .= "Sorry, $nick.  I missed that one.\n";
+      }
     }
-    elsif ($arg =~ /i already had it that way/i) {
-	my @slut = 
-	    ( "you're a floozie...", 'wench...', "you're a slut...",
-	     'strumpet...', );
-	$msg = $slut[rand(@slut)];
-	$self->privmsg($to,"$msg\n");
+    elsif ($arg =~ /^trivia (.+)/) {
+      my ($trivia, $line);
+      my ($title, $pos) = find_title_trivia ($1);
+      if ($title && $pos) {
+        ($title, $trivia) = pick_trivia ($title, $pos);
+        $self->privmsg($to,"$title Trivia:\n");
+        $msg = "";
+        foreach $line(@$trivia) {
+          $msg .= $line;
+        }
+        @result = split /\n/,fill("","",$msg);
+        for (my $i = 0; $i < $#result;$i++ ) {
+          $self->privmsg($to, $result[$i]);
+          sleep 1;
+        }
+        $msg = $result[$#result];
+      }
+      else {
+        $msg .= "Sorry, $nick.  No soup for you.\n";
+      }
     }
-    elsif ($arg =~ /It's a(n)? [a-z]+ [0-9]+ degrees in (.*),/) {
-	if (rand() < 0.45) {
-	    $msg = "But a Winterfresh $1 tastes much much cooler!";
-	    $self->privmsg($to,"$msg\n");
-	}
+    # elsif ($arg =~ /^(dow|nasdaq|s&p)/i) {
+    #   my %index =
+    #     ( 'dow', '^DJI', 'nasdaq', '^IXIC', 's&p', '^SPX', );
+    #   @result = @{&get_stockprice($index{"$1"},5)};
+    #   for (my $i = 0; $i < $#result;$i++ ) {
+    #     $self->privmsg($to, $result[$i]);
+    #     sleep 1;
+    #   }
+    #   $msg = $result[$#result];
+    # }
+    elsif ($arg =~ /^scope\s*(.*)/i) {
+      @result = @{&get_horoscope($1)};
+      for (my $i = 0; $i < $#result;$i++ ) {
+        $self->privmsg($to, $result[$i]);
+        sleep 1;
+      }
+      $msg = $result[$#result];
+    }			#
+	# elsif ($arg =~ /^countdown\s+(\d+)/) {
+	#     if ($1 < 180) {
+	# 	sleep $1;
+	# 	$msg .= "this is your reminder.";
+	#     }
+	# }
+    elsif ($arg =~ /^websters\s+black\s+crappie/) {
+      $msg .= q(you can't even do that, so don't even try.);
     }
+    elsif ($arg =~ /^(saurus|roget)\s+([^\s]+)/) {
+      @result = split /\n/,fill("","",@{&roget($2)});
+      for (my $i = 0; $i < $#result;$i++ ) { #
+        $self->privmsg($to, $result[$i]);
+        sleep 2;
+        }
+      $msg = $result[$#result];
+    }			#
+    # elsif ($arg =~ /^(handle|moniker)\s+([^\s]+)/) {
+    #   $msg .= &handle($2);	#
+    # }			#
+    elsif ($arg =~ /^sniglet(.*)/) {
+      $msg .= &get_sniglet($1); #
+    }			#
+    elsif ($arg =~ /^abuse ([^ ]*)/) {
+      $msg = "$1, ";
+      $msg .= &get_abuse();
+    }
+    elsif ($arg =~ /^rhetorical(.*)/) {
+      $msg .= q(because they're stupid...);
+    }
+    elsif ($arg =~ /^morse (.*)/) {
+      $msg .= &get_morse($1)
+    }
+    elsif ($arg =~ /^horoscope\s+([^\s]+)/) {
+      my $sagscope = "Dear Teeth-Shaking, Glass-Breaking,
+                      Rump-Roasting Bun-Toasting Flash of Liquid Lightning: I
+                      dreamed you finally revealed your secret identity after
+                      all these years--you know, about how you came from the
+                      planet Lovemania in order to teach all earthlings how to
+                      feel horny for clouds, trees, tigers, and even the ocean
+                      itself!  Is my dream true? Please say it is!  Tell me
+                      you're really ready to drop your overly respectable pose
+                      so that you may spread erotic healing throughout the
+                      land!  Dare to become the sublimely lustful worshiper of
+                      beauty and truth you were born to be!";
 
-    if ($userhost =~ m/hsiao\@(padfoot|biner)/) {
-	$idletime{"$to"} = time();
+      if ($1 !~ /sagittarius/i) {
+        $msg = "$1, you're gonna die";
+        $msg .= " . . . twice" if ($1 =~ /gemini/i);
+        $msg .= ".";
+      }
+      else {
+        $self->privmsg($to, "Sagittarius: ");
+        $sagscope =~ s/\n//g;
+        @result = split /\n/,fill("","",$sagscope);
+        for (my $i = 0; $i < $#result;$i++ ) {
+          $self->privmsg($to, $result[$i]);
+          sleep 2;
+        }
+        $msg = $result[$#result];
+      }
     }
+    elsif ($userhost =~ /(james\@.*\.coxinc\.com|James_Hsi\@.*direcpath.com)$/i) {
+      if ($arg =~ /^say (\S+) (.+)/i) {
+        $to = $1;
+        $msg = $2;
+      }
+      elsif ($arg =~ /^stfu/i) {
+        $stfu = 1;
+        $msg = 'okay';
+      }
+      elsif ($arg =~ /^speak/i) {
+        $stfu = 0;
+        $msg = 'okay';
+      }
+      # elsif ($arg =~ /^zwrite (\S+) (.+)/) {
+      #   system ('/usr/local/bin/zwrite', $1, '-m', $2);
+      #   $msg .= "zwrite $1 -m $2";
+      # }
+      elsif ($arg =~ /^join (.*)/) {
+        $self->join($1);
+        $msg .= "joining $1";
+      }
+      elsif ($arg =~ /^deop (\S+) (.+)/) {
+        $to = $2;
+        $self->mode("$2", "-o", $1);
+        $msg = 'The Lord giveth and the lord taketh away...';
+      }
+      elsif ($arg =~ /^op (\S+) (.+)/) {
+        $to = $nick;
+        $self->mode("$2", "+o", $1);
+        $msg .= "op $1 on $2";
+      }
+    }
+    else {
+      my (@wit) =
+        (
+         "PAK CHOOIE UNF",
+         "Pushing will protect you from the terrible secret of space",
+         "Shoving will protect you from the terrible secret of space",
+         "I'll be in my bunk...",
+         "hey, how's it goin?",
+         "You know what the chain of command is? It's the chain I go get and beat you with 'til ya understand who's in ruttin' command here.",
+        );
+      $msg .= $wit[rand(@wit)] if (rand() < .10);
+    }
+    $self->privmsg($to, "$msg\n") if $msg ne "$nick, ";
+  }
+  elsif ($arg =~ /^(sudo )?(ls( .*)?|pwd|cd( .*)?|rm( .*)?)$/) {
+    $msg .= "this ain\'t your shell window";
+    $self->privmsg($to, "$msg\n") unless ($stfu);
+  }
+  elsif ($arg =~ /^(\:wq)$/) {
+    $msg .= "this ain\'t your vi";
+    $self->privmsg($to, "$msg\n") unless ($stfu);
+  }
+  # elsif ($arg =~ /^\.$/) {
+  #   $msg = "$nick: Message sent.";
+  #   $self->privmsg($to, "$msg\n");
+  # }
+  # elsif ($arg =~ /i already had it that way/i) {
+  #   my @slut =
+  #     ( "you're a floozie...", 'wench...', "you're a slut...",
+  #       'strumpet...', );
+  #   $msg = $slut[rand(@slut)];
+  #   $self->privmsg($to,"$msg\n");
+  # }
+  # elsif ($arg =~ /It\'s a(n)? [a-z]+ [0-9]+ degrees in (.*),/) {
+  #   if (rand() < 0.45) {
+  #     $msg = "But a Winterfresh $1 tastes much much cooler!";
+  #     $self->privmsg($to,"$msg\n");
+  #   }
+  # }
+  elsif ($arg =~ /pythonpath/i) {
+    $msg = "If you're mucking with your PYTHONPATH, you're doing it wrong.";
+    $self->privmsg($to,"$msg\n") unless ($stfu);
+  }
+  elsif ($arg =~ m/((CMS[A-Z]|CHR|GUR|WD|FR|HELPDESK)-[0-9]*)/) {
+    my $ticket = $1;
+    if ($arg !~ m{browse/$1}) {
+      # record recent tickets
+      $data->{recent}->{$ticket}->{time} = time();
+      $data->{recent}->{$ticket}->{count}++;
 
+      # check message type
+      if ($data->{recent}->{$ticket}->{count} > 4) {
+        undef $msg;
+      }
+      elsif ($data->{recent}->{$ticket}->{count} > 3) {
+        $msg = "Seriously, dude. That's annoying. Quit it.";
+      }
+      elsif ($data->{recent}->{$ticket}->{count} > 2) {
+        $msg = "Dude, quit it.";
+      }
+      else {
+        $msg =
+          "$nick may be talking about: " .
+          "http://jira.ddtc.cmgdigital.com/browse/$1";
+      }
+
+      # output message
+      if ($msg) {
+        $self->privmsg($to, "$msg\n") unless ($stfu);
+      }
+    }
+  }
+  if ($userhost =~ m/hsiao\@(padfoot|biner)/) {
+    $idletime{"$to"} = time();
+  }
 }
 
-sub on_names
-{
-    my ($self, $event) = @_;
-    my (@list) = $event->args ();
+sub on_names {
+  my ($self, $event) = @_;
+  my (@list) = $event->args ();
 
-    print "names: @list\n";
+  print "names: @list\n";
 }
 
 sub roget {
-    my $inarg = shift;
-    my ($host, $port) = ('www.m-w.com', 80);
-    my ($initial,$final) = ("Synonyms","Related");
-    my @result;
+  my $inarg = shift;
+  my ($host, $port) = ('www.m-w.com', 80);
+  my ($initial,$final) = ("Synonyms","Related");
+  my @result;
 
-    my $url = qq(/cgi-bin/thesaurus?book=Thesaurus\&va=$inarg);
-    &make_connection($host, $port);
+  my $url = qq(/cgi-bin/thesaurus?book=Thesaurus\&va=$inarg);
+  &make_connection($host, $port);
 
-    select(S); $| = 1;
-    select(STDOUT); $| = 1;
-    
-    print S "GET $url HTTP/1.0\n\n";
-    
-    while(<S>) {
-	next unless (m/$initial/);
-	
-	s/Text.\s+//;
-	s/<b>(.*?)\s*<\/b>/\U$1\E: /g;
-	s/\s+/ /g;
-	s/<BR>/ /gi;		# kill trailing null values
-	s/<[^>]*>//g;		# kill HTML 
-	s/\&(lt|gt);/\"/g;
-	    
-	push @result,$_;
-    }
-    return \@result;
+  select(S); $| = 1;
+  select(STDOUT); $| = 1;
+
+  print S "GET $url HTTP/1.0\n\n";
+
+  while(<S>) {
+    next unless (m/$initial/);
+
+    s/Text.\s+//;
+    s/<b>(.*?)\s*<\/b>/\U$1\E: /g;
+    s/\s+/ /g;
+    s/<BR>/ /gi;		# kill trailing null values
+    s/<[^>]*>//g;		# kill HTML
+    s/\&(lt|gt);/\"/g;
+
+    push @result,$_;
+  }
+  return \@result;
 }
 
 sub handle {
-    my $inarg = shift;
-    my ($host, $port) = ('www.zelo.com', 80);
-    my ($initial, $final) = ("$inarg","</table>");
-    my ($result);
+  my $inarg = shift;
+  my ($host, $port) = ('www.zelo.com', 80);
+  my ($initial, $final) = ("$inarg","</table>");
+  my ($result);
 
-    my $url = qq(/firstnames/findname.asp?name=$inarg);
-    &make_connection($host, $port); 
+  my $url = qq(/firstnames/findname.asp?name=$inarg);
+  &make_connection($host, $port);
 
-    select(S); $| = 1;
-    select(STDOUT); $| = 1;
-	
-    print S "GET $url HTTP/1.0\n\n";
-    
-    while(<S>) {
-	next unless (m/^$initial/i .. m/$final/i);
-	
-	chomp($_); chop($_);
-	s/<TD>(.*)<\/TD>\s*$/$1/;
-	s/<TD[^>]*><FONT[^>]*>\s*$//;
-	
-	s/<[^>]*>//g;		# kill HTML 
-	$result .= $_ unless /^\s*$/;;
-    }
-    
-    if (!$result) {
-	$result = "$inarg probably means something to you, but I'm at a loss.";
-    }
-    else {
-	$result =~ s/.*Root: (.*)Origin: (.*)Meaning: (.*)//;
-	$result = "$inarg means \'$3\' and originates from $2.  ";
-	$result .= "$inarg is a variation on \'$1.\'" if $1;
-    }
-    return $result;
+  select(S); $| = 1;
+  select(STDOUT); $| = 1;
+
+  print S "GET $url HTTP/1.0\n\n";
+
+  while(<S>) {
+    next unless (m/^$initial/i .. m/$final/i);
+
+    chomp($_); chop($_);
+    s/<TD>(.*)<\/TD>\s*$/$1/;
+    s/<TD[^>]*><FONT[^>]*>\s*$//;
+
+    s/<[^>]*>//g;		# kill HTML
+    $result .= $_ unless /^\s*$/;;
+  }
+
+  if (!$result) {
+    $result = "$inarg probably means something to you, but I'm at a loss.";
+  }
+  else {
+    $result =~ s/.*Root: (.*)Origin: (.*)Meaning: (.*)//;
+    $result = "$inarg means \'$3\' and originates from $2.  ";
+    $result .= "$inarg is a variation on \'$1.\'" if $1;
+  }
+  return $result;
 }
 
 sub get_stockprice {
-    my ($inarg,$searchType) = @_;
-    my ($host, $port) = ('finance.yahoo.com', 80);
-    my ($initial, $final) = ("Symbol",'</pre><center>');
-    my @result;
+  my ($inarg, $searchType) = @_;
+  my ($host, $port) = ('finance.yahoo.com', 80);
+  my ($initial, $final) = ("Symbol",'</pre><center>');
+  my @result;
 
-    $inarg =~ s/ +/+/g;
+  $inarg =~ s/ +/+/g;
 
-    my $url = qq(/q?s=) . $inarg . qq(\&o=t\&d=v$searchType);
-    &make_connection($host, $port); 
-	
-    select(S); $| = 1;
-    select(STDOUT); $| = 1;
-    
-    print S "GET $url HTTP/1.0\n";
-    print S 'Cookie: B=2lh2h5csmpa50&b=2; Y=v=1&n=06ffpb9man2d0&l=jc7i80e/o&p=m290tj54111802&r=2q&lg=us&intl=us; T=z=0UWj7A0arj7ANDRuORUboaZNjMxBjIwNjAyTjNOTw--&a=QAE&sk=DAABLzrOztXSA2&d=c2wBTVRRMkFUVTNNVGMxT1RRNU9BLS0BYQFRQUUBenoBMFVXajdBZ1dB; I=ir=8d&in=2059b032&i7=06090b0c0e0f0g1u202p2r47494a4m5g5i7173787a7d7i9jaub3bdbebhbpc0c1cbcocud7eojcp2 ', "\n\n";	       
-    
-    while(<S>) {
-	next unless (/^$initial/ .. /$final/);
-	if (m/(No such ticker symbol)/) {
-	    push @result, $1;
-	}
-	else {
-	    s/<[^>]*>//g;	# kill HTML
-	    s/\n/END/;		# kill EOL
-	    s/(\-\s+)+//;	# kill trailing null values
-	    s/\s+/  /g;		# replace extensive whitespace
-	    s/$initial.*$//;	# remove initial line
-	    s/($inarg)\s+/$1  /i; # pretty print
-	    s/END/\n/;
-	    
-	    # change index names
-	    s/\^DJI/Dow/;
-	    s/\^IXIC/Nasdaq/;
-	    s/\^SPX/S&P/;
-	    
-	    push (@result, $_) unless /^\s*$/;
-	}
+  my $url = qq(/q?s=) . $inarg . qq(\&o=t\&d=v$searchType);
+  &make_connection($host, $port);
+
+  select(S); $| = 1;
+  select(STDOUT); $| = 1;
+
+  print S "GET $url HTTP/1.0\n\n";
+
+  while(<S>) {
+    next unless (/^$initial/ .. /$final/);
+    if (m/(No such ticker symbol)/) {
+      push @result, $1;
     }
-    return \@result;
+    else {
+      s/<[^>]*>//g;	# kill HTML
+      s/\n/END/;		# kill EOL
+      s/(\-\s+)+//;	# kill trailing null values
+      s/\s+/  /g;		# replace extensive whitespace
+      s/$initial.*$//;	# remove initial line
+      s/($inarg)\s+/$1  /i; # pretty print
+      s/END/\n/;
+
+      # change index names
+      s/\^DJI/Dow/;
+      s/\^IXIC/Nasdaq/;
+      s/\^SPX/S&P/;
+
+      push (@result, $_) unless /^\s*$/;
+    }
+  }
+  return \@result;
 }
 
-sub get_abuse {
-    my ($host, $port) = ('www.upstartx.com', 80);
-    my ($initial, $final) = ('<P ALIGN=CENTER><B>','</B></P></FONT>');
-    my $result;
+sub get_morse {
+  my $inarg = shift;
+  my ($result, $trans, $splitter);
 
-    my $url = qq(/abuse/abuse.shtml);
-    &make_connection($host, $port); 
-	
-    select(S); $| = 1;
-    select(STDOUT); $| = 1;
-    
-    print S <<EOT;
-GET $url HTTP/1.0
-Pragma: no-cache 
-Accept: image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, image/png, */* 
-Accept-Encoding: gzip 
-Referer: http://www.upstartx.com/abuse/abuse.shtml 
-User-Agent: Mozilla/4.74 [en] (X11; U; Linux 2.2.14-5.0smp i686) 
-Accept-Charset: iso-8859-1,*,utf-8 
-Host: www.upstartx.com 
-Accept-Language: en 
+  my %alpha2morse =
+    ( 'a', '.-', 'b', '-...', 'c', '-.-.', 'd', '-..', 'e', '.', 'f',
+      '..-.', 'g', '--.', 'h', '....', 'i', '..', 'j', '.---', 'k',
+      '-.-', 'l', '.-..', 'm', '--', 'n', '-.', 'o', '---', 'p',
+      '.--.', 'q', '--.-', 'r', '.-.', 's', '...', 't', '-', 'u',
+      '..-', 'v', '...-', 'w', '.--', 'x', '-..-', 'y', '-.--', 'z',
+      '--..', '1', '.----', '2', '..---', '3', '...--', '4', '....-',
+      '5', '.....', '6', '-....', '7', '--...', '8', '---..', '9',
+      '----.', '0', '-----', "\n", "\n", ' ', ' ',);
 
-EOT
-
-    while(<S>) {
-	next unless (/^$initial/ .. /$final/);
-	s/<[^>]*>//g;	
-
-	$result .=  lc($_) unless /^\s*$/;
-    }
-    return $result;
-}
-
-sub get_morse { 
-  my $inarg = shift; 
-  my ($result, $trans, $splitter);   
-
-  my %alpha2morse = 
-      ( 'a', '.-', 'b', '-...', 'c', '-.-.', 'd', '-..', 'e', '.', 'f',
-	'..-.', 'g', '--.', 'h', '....', 'i', '..', 'j', '.---', 'k',
-	'-.-', 'l', '.-..', 'm', '--', 'n', '-.', 'o', '---', 'p', '.--.',
-	'q', '--.-', 'r', '.-.', 's', '...', 't', '-', 'u', '..-', 'v',
-	'...-', 'w', '.--', 'x', '-..-', 'y', '-.--', 'z', '--..', '1',
-	'.----', '2', '..---', '3', '...--', '4', '....-', '5', '.....',
-	'6', '-....', '7', '--...', '8', '---..', '9', '----.', '0',
-	'-----', "\n", "\n", ' ', '  ',);
-  
   my %morse2alpha = reverse %alpha2morse;
 
   if ($inarg =~ /[A-Za-z0-9]/) {
@@ -511,82 +492,93 @@ sub get_morse {
     $splitter = "";
   }
   else {
-    $inarg =~ s/\_/\-/g; 
+    $inarg =~ s/\_/\-/g;
     $trans = \%morse2alpha;
     $splitter = " ";
   }
   my @morsey = split (/$splitter/, $inarg);
-  
+
   foreach my $elem (@morsey) {
     $result .= $trans->{"$elem"}," ";
   }
-  
-  return $result; 
-} 
+
+  return $result;
+}
+
+
 
 sub get_horoscope {
-    my $inarg = shift;
-    $inarg = uc($inarg);
-    my ($host, $port) = ('www.freewillastrology.com', 80);
-    my $res_string; 
-    my @result;
+  my $inarg = shift;
+  $inarg = uc($inarg);
+  my ($host, $port) = ('www.freewillastrology.com', 80);
+  my $res_string;
+  my @result;
 
-    my $url = qq(/pages/allsigns_to.shtml);
-    &make_connection($host, $port); 
+  my $url = qq(/pages/allsigns_to.shtml);
+  &make_connection($host, $port);
 
-    select(S); $| = 1;
-    select(STDOUT); $| = 1;
-	
-    print S "GET $url HTTP/1.0\n\n";
-    
-    while(<S>) {
+  select(S); $| = 1;
+  select(STDOUT); $| = 1;
+
+  print S "GET $url HTTP/1.0\n\n";
+
+  while(<S>) {
 	next unless (m%<A NAME="$inarg">% ... m%<A NAME%i);
 	s/\n//g;
 	$res_string .= $_ unless /^\s*$/;
-    }
-    $res_string =~ s/<[^>]*>//g;	# kill HTML	    
-    if ($res_string =~ m/Content-Type/) { 
-      $res_string =~ s/.*$inarg \(/$inarg \(/;
-    } 
-    @result = split /\n/,fill("","",$res_string);
-    return \@result;
+  }
+  $res_string =~ s/<[^>]*>//g;	# kill HTML
+  if ($res_string =~ m/Content-Type/) {
+    $res_string =~ s/.*$inarg \(/$inarg \(/;
+  }
+  @result = split /\n/,fill("","",$res_string);
+  return \@result;
 }
 
 sub get_sniglet {
-    my $wordlet = shift;
-    my ($sniglets) = ("/home/hsiao/projects/01_olga/sniglets.txt");
-    my ($result);
+  my $wordlet = shift;
+  my ($sniglets) = ("/home/james/devel/cim/projects/01_olga/data/sniglets.txt");
+  my ($result);
 
-    $wordlet =~ s/\s*//g;
+  $wordlet =~ s/\s*//g;
 
-    open(SNG,"<$sniglets") || warn "can't open $sniglets: $!";
-    if ($wordlet) {
-	while (<SNG>) {
-	    if (/^$wordlet/i) {
-		chomp($_);
-		$result = $_;
-		last;
-	    }
-	}
+  open(SNG,"<$sniglets") || warn "can't open $sniglets: $!";
+  if ($wordlet) {
+    while (<SNG>) {
+      if (/^$wordlet/i) {
+        chomp($_);
+        $result = $_;
+        last;
+      }
     }
-    else {
-	rand($.) < 1 && ($result = $_) while <SNG>;
-    }
-    close SNG;			
-    $result = "I dunno..." if (!$result);
-    return $result;
+  }
+  else {
+    rand($.) < 1 && ($result = $_) while <SNG>;
+  }
+  close SNG;
+  $result = "I dunno..." if (!$result);
+  return $result;
+}
+
+sub get_abuse {
+  my @styles = (0, 3);
+  my $style = $styles[rand(@styles)];
+  my $url = sprintf('http://www.webinsult.com/index.php?style=%s',
+                    $style);
+
+  my ($insult) = grep {/id="insult"/} split(/\n/,get($url));
+  $insult =~ s/<[^>]*>//g;
+  return lcfirst($insult);
 }
 
 sub make_connection {
-    my ($host, $port) = @_;
+  my ($host, $port) = @_;
 
-    my $proto = getprotobyname('tcp');
-    if ($port =~ /\D/) { $port = getservbyname($port, 'tcp') }
-    die "No port" unless $port;
-    my $iaddr = inet_aton( $host ) || warn "no host: $!";
-    my $paddr = sockaddr_in($port, $iaddr );
-    socket( S, PF_INET, SOCK_STREAM, $proto) || warn "socket: $!";
-    connect(S, $paddr) || warn "connect: $!";
+  my $proto = getprotobyname('tcp');
+  if ($port =~ /\D/) { $port = getservbyname($port, 'tcp') }
+  die "No port" unless $port;
+  my $iaddr = inet_aton( $host ) || warn "no host: $!";
+  my $paddr = sockaddr_in($port, $iaddr );
+  socket( S, PF_INET, SOCK_STREAM, $proto) || warn "socket: $!";
+  connect(S, $paddr) || warn "connect: $!";
 }
-
-

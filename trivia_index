@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl
 
-open (QUOTES, '/usr/local/share/imdb/trivia.list');
+open (QUOTES, 'trivia.list');
 while (<QUOTES>) {
     next unless /^\#/o;
     ($title) = /^\# (.+) \(\d{4}/;

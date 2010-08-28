@@ -1,0 +1,23 @@
+use LWP::Simple;
+use JSON::XS;
+use Data::Dumper;
+
+  $word = $ARGV[0];
+
+  my $apikey = q(ab4c2716b98b1c76f4b889014214dadb);
+  my $url = sprintf(qq(http://words.bighugelabs.com/api/2/%s/%s/json),
+                    $apikey, $word
+    );
+
+  my $json = get($url);
+
+my $hash = decode_json($json);
+
+for my $key (keys %$hash) {
+  next if $ARGV[1] && $key ne $ARGV[1];
+
+  print $key,"\n";
+  print join(':', map { "$_ - " . join(', ',@{$hash->{$key}->{$_}}) .
+                          "\n" } keys %{$hash->{$key}});
+
+}

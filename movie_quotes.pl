@@ -3,8 +3,8 @@
 use strict;
 
 # I just love those unassailable file-scoped lexicals
-my ($QUOTES) = '/usr/local/share/imdb/quotes.list';
-my ($QUOTES_IDX) = '/usr/local/share/imdb/quotes.idx';
+my ($QUOTES) = 'data/quotes.list';
+my ($QUOTES_IDX) = 'data/quotes.idx';
 
 sub find_title_quotes
 {
