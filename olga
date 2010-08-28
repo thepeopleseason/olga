@@ -8,8 +8,9 @@ use lib qw(/home/james/devel/cim/projects/01_olga);
 use Net::IRC;
 use Text::Wrap qw(fill $columns);
 use LWP::Simple;
-use JSON::XS;
 use XML::RSS;
+use XML::Simple;
+use JSON::XS;
 
 require "movie_quotes.pl";
 require "movie_trivia.pl";
@@ -51,7 +52,7 @@ $conn->add_handler('public', \&on_public);
 $conn->add_handler('msg', \&on_public);
 $conn->add_handler('join', \&on_join);
 $conn->add_handler('nick', \&on_nick);
-$conn->add_handler('ping', \&on_ping);
+$conn->add_handler('ping', \&on_ping, 2);
 $conn->add_global_handler(353, \&on_names);
 $irc->start;
 
@@ -60,6 +61,7 @@ sub on_connect {
 
     # preprocess bugs list
     process_bugs($self, 1);
+    process_fails($self, 1);
 
     print "Attempting to join $channel\n";
     eval { $self->join("$channel"); };
@@ -96,7 +98,10 @@ sub on_nick {
 sub on_ping {
   my ($self, $event) = @_;
 
+  print Dumper($event);
+
   process_bugs($self);
+  process_fails($self);
 }
 
 sub on_public {
@@ -594,6 +599,25 @@ sub process_bugs {
       $data->{bugs}->{$item->{key}} = $item->{title};
       $self->privmsg($channel, "New bug! " .
                      $item->{title} . "\n") unless $init;
+    }
+  }
+}
+
+sub process_fails {
+  my ($self, $init) = @_;
+
+  my $feed = XMLin(
+    get('http://vcs.ddtc.cmgdigital.com:9191/hudson/rssFailed')
+    );
+
+  for my $key (keys %{$feed->{entry}}) {
+    my $entry = $feed->{entry}->{$key};
+
+    unless ($data->{hudson}->{$entry->{title}}) {
+      $data->{hudson}->{$entry->{title}} = $entry->{link}->{href};
+      $self->privmsg($channel,
+                     "$entry->{title}: $entry->{link}->{href}\n")
+        unless $init;
     }
   }
 }
