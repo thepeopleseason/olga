@@ -157,6 +157,17 @@ sub on_public {
     elsif ($arg =~ m/^haiku\s*(.*)/i) {
       &haiku($self, $to, $1);
     }
+    elsif ($arg =~ m/^tanka/i) {
+      &haiku($self, $to);
+      $self->privmsg(
+        $to,
+        $data->{haiku}->{sevens}->[rand(@{$data->{haiku}->{sevens}})]
+        );
+      $self->privmsg(
+        $to,
+        $data->{haiku}->{sevens}->[rand(@{$data->{haiku}->{sevens}})]
+        );
+    }
     elsif ($arg =~ /^mquote (.+)/) {
       my ($quote, $line);
       my ($title, $pos) = find_title_quotes ($1);
@@ -362,7 +373,7 @@ sub fill_output {
 sub haiku {
   my ($conn, $to, $args) = @_;
 
-  my $usage = "Usage: haiku (add|remove) (fives|sevens) <phrase>\n";
+  my $usage = "Usage: haiku add (fives|sevens) <phrase>\n";
 
 
   if ($args) {
