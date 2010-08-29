@@ -1,7 +1,6 @@
 #!/usr/bin/perl -s
 
 use strict;
-use Socket;
 use vars qw($channel $mynick $data $irc $conn $james);
 use lib qw(/home/james/devel/cim/projects/01_olga);
 use Net::IRC;
@@ -25,8 +24,6 @@ my @spacerobots =
  "Shoving will protect you from the terrible secret of space.",
 );
 
-$data->{userhost} = '(james\@.*\.coxinc\.com|James_Hsi\@.*direcpath.com)';
-
 $channel = "#$ARGV[0]"||'#all';
 $mynick = $ARGV[1];
 print "channel: $channel\n";
@@ -41,6 +38,10 @@ $conn = $irc->newconn(
   Password => 'xXxXxXxXxXx',
   );
 
+$data->{userhost} = '(james\@.*\.coxinc\.com|James_Hsi\@.*direcpath.com)';
+$data->{jsonfile} = "${mynick}_dat.json";
+&init_data($conn);
+
 $conn->add_handler(['376', '422'], \&on_connect);
 $conn->add_handler('public', \&on_public);
 $conn->add_handler('msg', \&on_public);
@@ -53,11 +54,6 @@ $irc->start;
 
 sub on_connect {
   my $self = shift;
-
-  # preprocess informational svcs
-  &process_bugs($self, 1);
-  &process_fails($self, 1);
-  &process_horoscopes();
 
   print "Attempting to join $channel\n";
   eval { $self->join("$channel"); };
@@ -101,9 +97,11 @@ sub on_nick {
 sub on_ping {
   my ($self, $event) = @_;
 
-  &process_bugs($self);
-  &process_fails($self);
-  &process_horoscopes();
+  &update_bugs($self);
+  &update_fails($self);
+  &update_horoscopes();
+
+  &write_data();
 }
 
 sub on_public {
@@ -428,7 +426,7 @@ sub get_morse {
   return $result;
 }
 
-sub process_horoscopes {
+sub update_horoscopes {
   my $time = time();
   if ($time - $data->{horoscopes}->{update} > 86400) {
     my $page =
@@ -484,7 +482,7 @@ sub get_abuse {
   return lcfirst($insult);
 }
 
-sub process_bugs {
+sub update_bugs {
   my ($self, $init) = @_;
 
   my $bugs_rss = 'http://jira.ddtc.cmgdigital.com/sr/jira.issueviews:searchrequest-xml/10204/SearchRequest-10204.xml';
@@ -501,7 +499,7 @@ sub process_bugs {
   }
 }
 
-sub process_fails {
+sub update_fails {
   my ($self, $init) = @_;
 
   my $feed = XMLin(
@@ -520,14 +518,28 @@ sub process_fails {
   }
 }
 
-sub make_connection {
-  my ($host, $port) = @_;
+sub init_data {
+  my ($conn) = @_;
 
-  my $proto = getprotobyname('tcp');
-  if ($port =~ /\D/) { $port = getservbyname($port, 'tcp') }
-  die "No port" unless $port;
-  my $iaddr = inet_aton( $host ) || warn "no host: $!";
-  my $paddr = sockaddr_in($port, $iaddr );
-  socket( S, PF_INET, SOCK_STREAM, $proto) || warn "socket: $!";
-  connect(S, $paddr) || warn "connect: $!";
+  if (!-e $data->{jsonfile}) {
+    &update_bugs($conn, 1);
+    &update_fails($conn, 1);
+    &update_horoscopes();
+
+    &write_data();
+  }
+
+  open(FILE,"<$data->{jsonfile}") || warn "Can't open $data->{jsonfile}: $!";
+  my $json = do { local $/; <FILE>; };
+  close(FILE);
+
+  $data = decode_json($json);
+}
+
+sub write_data {
+  my $json = encode_json($data);
+
+  open(FILE,">$data->{jsonfile}") || warn "Can't open $data->{jsonfile}: $!";
+  print FILE $json;
+  close(FILE);
 }
