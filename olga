@@ -57,6 +57,7 @@ sub on_connect {
   # preprocess informational svcs
   &process_bugs($self, 1);
   &process_fails($self, 1);
+  &process_horoscopes();
 
   print "Attempting to join $channel\n";
   eval { $self->join("$channel"); };
@@ -102,6 +103,7 @@ sub on_ping {
 
   &process_bugs($self);
   &process_fails($self);
+  &process_horoscopes();
 }
 
 sub on_public {
@@ -149,10 +151,11 @@ sub on_public {
       }
       undef $msg;
     }
-    # TODO
-    # elsif ($arg =~ /^(dow|nasdaq|s&p)/i) {
-    #   my %index =
-    #     ( 'dow', '^DJI', 'nasdaq', '^IXIC', 's&p', '^SPX', );
+    elsif ($arg =~ /^(dow|nasdaq|s&p)/i) {
+      my %index =
+        ( 'dow', '^DJI', 'nasdaq', '^IXIC', 's&p', '^SPX', );
+      $msg = &get_stockprice($index{$1});
+    }
     elsif ($arg =~ /^mquote (.+)/) {
       my ($quote, $line);
       my ($title, $pos) = find_title_quotes ($1);
@@ -175,9 +178,8 @@ sub on_public {
         $msg = "Sorry, $nick.  No soup for you.\n";
       }
     }
-    # TODO: load full file at startup and check on individual in $data
     elsif ($arg =~ /^scope\s*(.*)/i) {
-      $msg = &get_horoscope($1);
+      $msg = $data->{horoscopes}->{lc($1)};
     }
 	# elsif ($arg =~ /^countdown\s+(\d+)/) {
 	#     if ($1 < 180) {
@@ -190,10 +192,10 @@ sub on_public {
     }
     elsif ($arg =~ /^(saurus|roget)\s+(.*)/) {
       $msg .= &saurus($2);
-    }			#
+    }
     elsif ($arg =~ /^sniglet(.*)/) {
-      $msg .= &get_sniglet($1); #
-    }			#
+      $msg .= &get_sniglet($1);
+    }
     elsif ($arg =~ /^abuse\s+([^ ]*)/) {
       $msg = "$1, " . &get_abuse();
     }
@@ -426,20 +428,24 @@ sub get_morse {
   return $result;
 }
 
-sub get_horoscope {
-  my $sign = shift;
-  my $output;
+sub process_horoscopes {
+  my $time = time();
+  if ($time - $data->{horoscopes}->{update} > 86400) {
+    my $page =
+      get(q(http://www.freewillastrology.com/horoscopes/printer-friendly.html));
 
-  my $page =
-    get(q(http://www.freewillastrology.com/horoscopes/printer-friendly.html));
+    my $cursign;
+    for my $line (split(/\n/, $page)) {
+      next unless ($line =~ m/div class="body-bold">(\S*)\s+\(/i ..
+                   $line =~ m%<p>%i);
+      $cursign = lc($1) if $1;
+      $line =~ s/<[^>]*>//g;
+      $line =~ s/\)/\) /g;
 
-  for my $line (split(/\n/, $page)) {
-	next unless ($line =~ m/div class="body-bold">$sign/i ..
-                 $line =~ m%<p>%i);
-    $line =~ s/<[^>]*>//g;
-    $output .= $line;
+      $data->{horoscopes}->{$cursign} .= $line;
+    }
+    $data->{horoscopes}->{update} = time();
   }
-  return $output;
 }
 
 sub get_sniglet {
