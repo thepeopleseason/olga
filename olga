@@ -24,7 +24,7 @@ my @spacerobots =
  "Shoving will protect you from the terrible secret of space.",
 );
 
-$channel = "#$ARGV[0]"||'#all';
+$channel = $ARGV[0] ? "#$ARGV[0]" : '#all';
 $mynick = $ARGV[1];
 print "channel: $channel\n";
 $irc = new Net::IRC;
@@ -154,6 +154,9 @@ sub on_public {
         ( 'dow', '^DJI', 'nasdaq', '^IXIC', 's&p', '^SPX', );
       $msg = &get_stockprice($index{$1});
     }
+    elsif ($arg =~ m/^haiku\s*(.*)/i) {
+      &haiku($self, $to, $1);
+    }
     elsif ($arg =~ /^mquote (.+)/) {
       my ($quote, $line);
       my ($title, $pos) = find_title_quotes ($1);
@@ -253,7 +256,7 @@ sub on_public {
         $self->mode("$2", "+o", $1);
         $msg .= "op $1 on $2";
       }
-      elsif ($arg =~ /^dumpdata\s*(.*)/) {
+      elsif ($arg =~ /^dump\s*(.*)/) {
         if ($1) {
           $to = $nick;
           $msg = Dumper($data->{$1});
@@ -296,6 +299,12 @@ sub on_public {
     $msg = "If you're mucking with your PYTHONPATH, you're doing it wrong.";
     $self->privmsg($to,"$msg\n")
       unless ($data->{stfu}->{$channel});
+  }
+  elsif ($arg =~ m/^(([^;]*)\s+is\s+([^;]*))$/i) {
+    $data->{facts}->{lc($2)} = "$1 ($nick)";
+  }
+  elsif ($arg =~ m/^(.*)\?$/) {
+    $self->privmsg($to, $data->{facts}->{lc($1)});
   }
   elsif ($arg =~ m/((CMS[A-Z]+|CHR|GUR|WD|FR|HELPDESK)-[0-9]*)/) {
     my $ticket = $1;
@@ -349,6 +358,47 @@ sub fill_output {
     sleep 1;
   }
 }
+
+sub haiku {
+  my ($conn, $to, $args) = @_;
+
+  my $usage = "Usage: haiku (add|remove) (fives|sevens) <phrase>\n";
+
+
+  if ($args) {
+    $args =~ m/^(\S*)\s+(\S*)\s+(.*)$/;
+    my ($proc, $type, $phrase) = ($1, $2, $3);
+
+    if (($proc !~ m/^(add|remove)/i) || ($type !~ m/^(five|seven)s/i)) {
+      $conn->privmsg($to, $usage);
+      return;
+    }
+    if ($proc =~ m/^add$/i) {
+      push @{$data->{haiku}->{lc($type)}}, $phrase;
+      $conn->privmsg($to, "Added.\n");
+    }
+    else {
+      @{$data->{haiku}->{lc($type)}} =
+        grep {!/$phrase/} @{$data->{haiku}->{lc($type)}};
+      $conn->privmsg($to, "Removed.\n");
+    }
+  }
+  else {
+    $conn->privmsg(
+      $to,
+      $data->{haiku}->{fives}->[rand(@{$data->{haiku}->{fives}})]
+      );
+    $conn->privmsg(
+      $to,
+      $data->{haiku}->{sevens}->[rand(@{$data->{haiku}->{sevens}})]
+      );
+    $conn->privmsg(
+      $to,
+      $data->{haiku}->{fives}->[rand(@{$data->{haiku}->{fives}})]
+      );
+  }
+}
+
 
 sub saurus {
   my @args = @_;
