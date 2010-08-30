@@ -24,6 +24,9 @@ my @spacerobots =
  "Shoving will protect you from the terrible secret of space.",
 );
 
+my %bParams = qw(ELLINGTON_BRANCH Ell TEMPLATE_BRANCH MT
+  YOUR_NAME Who BRANCH SV);
+
 $channel = $ARGV[0] ? "#$ARGV[0]" : '#all';
 $mynick = $ARGV[1];
 print "channel: $channel\n";
@@ -277,6 +280,13 @@ sub on_public {
           print Dumper($data);
           undef $msg;
         }
+      }
+      elsif ($arg =~ /^refresh/) {
+        delete $data->{bugs};
+        delete $data->{hudson};
+
+        &update_bugs($self, 1);
+        &update_fails($self, 1);
       }
       elsif ($arg =~ /^jsondump/) {
         &write_data();
@@ -601,11 +611,18 @@ sub update_fails {
   for my $key (keys %{$feed->{entry}}) {
     my $entry = $feed->{entry}->{$key};
 
-    unless ($data->{hudson}->{$entry->{title}}) {
-      $data->{hudson}->{$entry->{title}} = $entry->{link}->{href};
+    $data->{hudson}->{$entry->{title}} = $entry->{link}->{href} unless
+      ($data->{hudson}->{$entry->{title}});
+    unless ($init) {
+      my $params = get($entry->{link}->{href});
+      $params =~ s/^.*buildWithParameters\?([^"]*)".*$/$1/;
+
+      $params = join(' ',
+                     map { my ($k, $v) = split(/=/,$_); "$bParams{$k}: $v" }
+                     split(/\&amp;/, $params));
+
       $self->privmsg($channel,
-                     "$entry->{title}: $entry->{link}->{href}\n")
-        unless $init;
+                     "$entry->{title}: $entry->{link}->{href} $params\n")
     }
   }
 }
