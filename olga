@@ -155,18 +155,15 @@ sub on_public {
       $msg = &get_stockprice($index{$1});
     }
     elsif ($arg =~ m/^haiku\s*(.*)/i) {
-      &haiku($self, $to, $1);
+      if ($1) {
+        &haiku($self, $to, $1);
+      }
+      else {
+        &compose_poem($self, $to);
+      }
     }
     elsif ($arg =~ m/^tanka/i) {
-      &haiku($self, $to);
-      $self->privmsg(
-        $to,
-        $data->{haiku}->{sevens}->[rand(@{$data->{haiku}->{sevens}})]
-        );
-      $self->privmsg(
-        $to,
-        $data->{haiku}->{sevens}->[rand(@{$data->{haiku}->{sevens}})]
-        );
+      &compose_poem($self, $to, 1);
     }
     elsif ($arg =~ /^mquote (.+)/) {
       my ($quote, $line);
@@ -277,6 +274,10 @@ sub on_public {
           undef $msg;
         }
       }
+      elsif ($arg =~ /^jsondump/) {
+        &write_data();
+        $msg = "Dumped.";
+      }
     }
     else {
       my (@wit) =
@@ -310,6 +311,11 @@ sub on_public {
     $msg = "If you're mucking with your PYTHONPATH, you're doing it wrong.";
     $self->privmsg($to,"$msg\n")
       unless ($data->{stfu}->{$channel});
+  }
+  elsif ($arg =~ m/^You're a towel!/) {
+    if ($nick eq "Towelie") {
+      $msg = "No, you're a towel!" if (rand() < .10);
+    }
   }
   elsif ($arg =~ m/^(([^;]*)\s+is\s+([^;]*))$/i) {
     $data->{facts}->{lc($2)} = "$1 ($nick)";
@@ -394,22 +400,30 @@ sub haiku {
       $conn->privmsg($to, "Removed.\n");
     }
   }
-  else {
-    $conn->privmsg(
-      $to,
-      $data->{haiku}->{fives}->[rand(@{$data->{haiku}->{fives}})]
-      );
-    $conn->privmsg(
-      $to,
-      $data->{haiku}->{sevens}->[rand(@{$data->{haiku}->{sevens}})]
-      );
-    $conn->privmsg(
-      $to,
-      $data->{haiku}->{fives}->[rand(@{$data->{haiku}->{fives}})]
-      );
-  }
 }
 
+sub compose_poem {
+  my ($conn, $to, $type) = @_;
+
+  my @fives;
+  my @sevens;
+  push @fives, @{$data->{haiku}->{fives}};
+  push @sevens, @{$data->{haiku}->{sevens}};
+
+  my $five = $fives[rand(@fives)];
+  @fives = grep {!/$five/} @fives;
+
+  my $seven1 = $sevens[rand(@sevens)];
+  @sevens = grep {!/$seven1/} @sevens;
+  my $seven2 = $sevens[rand(@sevens)];
+  @sevens = grep {!/$seven2/} @sevens;
+
+  $conn->privmsg($to, $five);
+  $conn->privmsg($to, $seven1);
+  $conn->privmsg($to, $fives[rand(@fives)]);
+  $conn->privmsg($to, $seven2) if ($type);
+  $conn->privmsg($to, $sevens[rand(@sevens)]) if ($type);
+}
 
 sub saurus {
   my @args = @_;
