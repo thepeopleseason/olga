@@ -208,6 +208,10 @@ sub on_public {
     elsif ($arg =~ /^abuse\s+([^ ]*)/) {
       $msg = "$1, " . &get_abuse();
     }
+    elsif ($arg =~ /^forget\s+(.*)/) {
+      delete $data->{facts}->{$1};
+      $msg .= "baleeted.";
+    }
     # elsif ($arg =~ /^rhetorical(.*)/) {
     #   $msg .= q(because they're stupid...);
     # }
@@ -278,6 +282,10 @@ sub on_public {
         &write_data();
         $msg = "Dumped.";
       }
+      elsif ($arg =~ /^die/) {
+        &write_data();
+        exit();
+      }
     }
     else {
       my (@wit) =
@@ -314,7 +322,7 @@ sub on_public {
   }
   elsif ($arg =~ m/^You're a towel!/) {
     if ($nick eq "Towelie") {
-      $msg = "No, you're a towel!" if (rand() < .10);
+      $msg = "No, you're a towel!" if (rand() < 0.20);
     }
   }
   elsif ($arg =~ m/^(([^;]*)\s+is\s+([^;]*))$/i) {
@@ -568,8 +576,17 @@ sub update_bugs {
   for my $item (@{$rss->{'items'}}) {
     unless ($data->{bugs}->{$item->{key}}) {
       $data->{bugs}->{$item->{key}} = $item->{title};
-      $self->privmsg($channel, "New bug! (cmheisel made me do it) " .
-                     $item->{title} . "\n") unless $init;
+
+      unless ($init) {
+        my $id = $item->{key};
+        $id =~ s/[\[\]]//g;
+        my $url = sprintf("http://jira.ddtc.cmgdigital.com/browse/%s",
+                          $id);
+          $self->privmsg($channel,
+                         sprintf("New bug (cmheisel made me do it)! %s %s\n",
+                                 $item->{title}, $url)
+                         );
+      }
     }
   }
 }
