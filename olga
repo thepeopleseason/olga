@@ -617,7 +617,7 @@ sub update_bugs {
         my $url = sprintf("http://jira.ddtc.cmgdigital.com/browse/%s",
                           $id);
           $self->privmsg($channel,
-                         sprintf("New bug (cmheisel made me do it)! %s %s\n",
+                         sprintf("*** New bug! %s %s\n",
                                  $item->{title}, $url)
                          );
       }
