@@ -211,10 +211,6 @@ sub on_public {
     elsif ($arg =~ /^abuse\s+([^ ]*)/) {
       $msg = "$1, " . &get_abuse();
     }
-    elsif ($arg =~ /^forget\s+(.*)/) {
-      delete $data->{facts}->{$1};
-      $msg .= "baleeted.";
-    }
     # elsif ($arg =~ /^rhetorical(.*)/) {
     #   $msg .= q(because they're stupid...);
     # }
@@ -242,6 +238,16 @@ sub on_public {
       else {
         $msg = "Sagittarius: $sagscope";
       }
+    }
+    elsif ($arg =~ /^forget\s+(.*)/) {
+      delete $data->{facts}->{$1};
+      $msg .= "baleeted.";
+    }
+    elsif ($arg =~ /^help/) {
+      my @funcs = qw(bugcount stock quote dow nasdaq s&p haiku tanka
+                     scope countdown saurus roget sniglet abuse morse
+                     horoscope forget);
+      $msg .= sprintf("Usage: olga <%s>", join('|', @funcs));
     }
     # master commands
     elsif ($userhost =~ m/$data->{userhost}$/i) {
@@ -296,6 +302,14 @@ sub on_public {
         &write_data();
         exit();
       }
+      elsif ($arg =~ /^setdata\s+(\S*)\s+(\S*)/) {
+        $data->{$1} = $2;
+        $msg = "Updated";
+      }
+      elsif ($arg =~ /^killdata\s+(\S*)/) {
+        delete $data->{$1};
+        $msg .= "baleeted.";
+      }
     }
     else {
       my (@wit) =
@@ -306,7 +320,7 @@ sub on_public {
          "You know what the chain of command is? It's the chain I go get and beat you with 'til ya understand who's in ruttin' command here.",
         );
       push @wit, @spacerobots;
-      $msg .= $wit[rand(@wit)] if (rand() < .10);
+      $msg .= $wit[rand(@wit)] if (rand() < $data->{talkback});
     }
     &fill_output($self, $msg, $to) unless $msg eq "$nick, ";
   }
@@ -332,14 +346,8 @@ sub on_public {
   }
   elsif ($arg =~ m/^You're a towel!/) {
     if ($nick eq "Towelie") {
-      $msg = "No, you're a towel!" if (rand() < 0.20);
+      $msg = "No, you're a towel!" if (rand() < $data->{towel});
     }
-  }
-  elsif ($arg =~ m/^(([^;]*)\s+is\s+([^;]*))$/i) {
-    $data->{facts}->{lc($2)} = "$1 ($nick)";
-  }
-  elsif ($arg =~ m/^(.*)\?$/) {
-    $self->privmsg($to, $data->{facts}->{lc($1)});
   }
   elsif ($arg =~ m/((CMS[A-Z]+|CHR|GUR|WD|FR|HELPDESK)-[0-9]*)/) {
     my $ticket = $1;
@@ -378,6 +386,19 @@ sub on_public {
           unless ($data->{stfu}->{$channel});
       }
     }
+  }
+  elsif ($arg =~ m/^(([^;]*)\s+(is|are|=)\s+([^;]*))$/i) {
+    my ($sentence, $subject, $predicate) = ($1, $2, $4);
+    if ($predicate =~ m/^<reply>\s*/) {
+      $predicate =~ s/^<reply>\s*//;
+      $data->{facts}->{lc($subject)} = "$predicate ($nick)";
+    }
+    else {
+      $data->{facts}->{lc($subject)} = "$sentence ($nick)";
+    }
+  }
+  elsif ($arg =~ m/^(.*)\?$/) {
+    $self->privmsg($to, $data->{facts}->{lc($1)});
   }
 }
 
@@ -529,7 +550,10 @@ sub update_horoscopes {
     for my $line (split(/\n/, $page)) {
       next unless ($line =~ m/div class="body-bold">(\S*)\s+\(/i ..
                    $line =~ m%<p>%i);
-      $cursign = lc($1) if $1;
+      if ($1) {
+        $cursign = lc($1);
+        delete $data->{horoscopes}->{$cursign};
+      }
       $line =~ s/<[^>]*>//g;
       $line =~ s/\)/\) /g;
 
@@ -611,18 +635,19 @@ sub update_fails {
   for my $key (keys %{$feed->{entry}}) {
     my $entry = $feed->{entry}->{$key};
 
-    $data->{hudson}->{$entry->{title}} = $entry->{link}->{href} unless
-      ($data->{hudson}->{$entry->{title}});
-    unless ($init) {
-      my $params = get($entry->{link}->{href});
-      $params =~ s/^.*buildWithParameters\?([^"]*)".*$/$1/;
+    unless ($data->{hudson}->{$entry->{title}}) {
+      $data->{hudson}->{$entry->{title}} = $entry->{link}->{href};
+      unless ($init) {
+        my $params = get($entry->{link}->{href});
+        $params =~ s/^.*buildWithParameters\?([^"]*)".*$/$1/s;
 
-      $params = join(' ',
-                     map { my ($k, $v) = split(/=/,$_); "$bParams{$k}: $v" }
-                     split(/\&amp;/, $params));
+        $params = join(' ',
+                       map { my ($k, $v) = split(/=/,$_); "$bParams{$k}: $v" }
+                       split(/\&amp;/, $params));
 
-      $self->privmsg($channel,
-                     "$entry->{title}: $entry->{link}->{href} $params\n")
+        $self->privmsg($channel,
+                       "$entry->{title}: $entry->{link}->{href} $params\n")
+      }
     }
   }
 }
