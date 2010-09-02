@@ -395,9 +395,12 @@ sub on_public {
       }
     }
   }
-  elsif ($arg =~ m/^(([^;]*)\s+(is|are|=)\s+([^;]*))$/i) {
+  elsif ($arg =~ m/^(([^;]*?)\s+(is|are|=)\s+([^;]*))$/i) {
     my ($sentence, $subject, $predicate) = ($1, $2, $4);
-    if ($predicate =~ m/^<reply>\s*/) {
+    if ($predicate =~ m/\`/) {
+      $self->privmsg($to, "You can't even do that, so don't even try.");
+    }
+    elsif ($predicate =~ m/^<reply>\s*/) {
       $predicate =~ s/^<reply>\s*//;
       $data->{facts}->{lc($subject)} = "$predicate ($nick)";
     }
