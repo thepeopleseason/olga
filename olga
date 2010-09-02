@@ -676,19 +676,13 @@ sub update_latest {
       my $latestkey = lc($entry->{title});
       $latestkey =~ s/^(\S*)\s+.*/$1/;
 
-      my $params = get($entry->{link}->{href});
-      $params =~ s/^.*buildWithParameters\?([^"]*)".*$/$1/s;
-
-      $params = join(' ', split(/\&amp;/, $params));
-
       my $dt = $dtf->parse_datetime($entry->{published})
         ->set_time_zone('local');
 
-      $data->{latest}->{$latestkey} = sprintf('%s %s %s %s',
+      $data->{latest}->{$latestkey} = sprintf('%s %s %s',
                                               $dt->strftime('%F %T'),
                                               $entry->{title},
                                               $entry->{link}->{href},
-                                              $params
         );
     }
   }
