@@ -145,6 +145,9 @@ sub on_public {
     elsif ($arg =~ /^(latest|lb)\s+(.*)/) {
         $msg .= $data->{latest}->{lc($2)}
     }
+    elsif ($arg =~ /^(lastreset)/) {
+        $msg .= $data->{latest}->{'medley-dev-reset'}
+    }
     elsif ($arg =~ /^(stock|quote)\s+(.*)/) {
     #   if (($1 eq "quote") && ($2 =~ /jay/i)) {
     #     my @askquotes = @jayquotes;
