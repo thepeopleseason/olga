@@ -102,6 +102,7 @@ sub on_ping {
 
   &update_bugs($self);
   &update_fails($self);
+  &update_latest();
   &update_horoscopes();
 
   &write_data();
@@ -140,6 +141,9 @@ sub on_public {
         $count = scalar(keys %{$data->{bugs}});
       }
       $msg .= "\U$filter\EBug count at $count\n";
+    }
+    elsif ($arg =~ /^(latest|lb)\s+(.*)/) {
+        $msg .= $data->{latest}->{lc($2)}
     }
     elsif ($arg =~ /^(stock|quote)\s+(.*)/) {
     #   if (($1 eq "quote") && ($2 =~ /jay/i)) {
@@ -245,9 +249,9 @@ sub on_public {
     }
     elsif ($arg =~ /^help/) {
       my @funcs = qw(bugcount stock quote dow nasdaq s&p haiku tanka
-                     scope countdown saurus roget sniglet abuse morse
-                     horoscope forget);
-      $msg .= sprintf("Usage: olga <%s>", join('|', @funcs));
+                     scope saurus roget sniglet abuse morse
+                     horoscope forget latest);
+      $msg .= sprintf("Usage: $mynick <%s>", join('|', @funcs));
     }
     # master commands
     elsif ($userhost =~ m/$data->{userhost}$/i) {
@@ -293,6 +297,7 @@ sub on_public {
 
         &update_bugs($self, 1);
         &update_fails($self, 1);
+        &update_latest();
       }
       elsif ($arg =~ /^jsondump/) {
         &write_data();
@@ -394,7 +399,8 @@ sub on_public {
       $data->{facts}->{lc($subject)} = "$predicate ($nick)";
     }
     else {
-      $data->{facts}->{lc($subject)} = "$sentence ($nick)";
+      $data->{facts}->{lc($subject)} = "$sentence ($nick)"
+        unless $data->{facts}->{lc($subject)};
     }
   }
   elsif ($arg =~ m/^(.*)\?$/) {
@@ -652,12 +658,49 @@ sub update_fails {
   }
 }
 
+sub update_latest {
+  my @urls = qw(view/Developer%20View/rssLatest rssLatest);
+  my $dtf = DateTime::Format::W3CDTF->new;
+
+  for my $url (@urls) {
+    my $feed =
+      XMLin(
+        get(sprintf(
+              'http://vcs.ddtc.cmgdigital.com:9191/hudson/%s',
+              $url,
+            )));
+
+    for my $key (keys %{$feed->{entry}}) {
+      my $entry = $feed->{entry}->{$key};
+
+      my $latestkey = lc($entry->{title});
+      $latestkey =~ s/^(\S*)\s+.*/$1/;
+
+      my $params = get($entry->{link}->{href});
+      $params =~ s/^.*buildWithParameters\?([^"]*)".*$/$1/s;
+
+      $params = join(' ', split(/\&amp;/, $params));
+
+      my $dt = $dtf->parse_datetime($entry->{published})
+        ->set_time_zone('local');
+
+      $data->{latest}->{$latestkey} = sprintf('%s %s %s %s',
+                                              $dt->strftime('%F %T'),
+                                              $entry->{title},
+                                              $entry->{link}->{href},
+                                              $params
+        );
+    }
+  }
+}
+
 sub init_data {
   my ($conn) = @_;
 
   if (!-e $data->{jsonfile}) {
     &update_bugs($conn, 1);
     &update_fails($conn, 1);
+    &update_latest();
     &update_horoscopes();
 
     &write_data();
