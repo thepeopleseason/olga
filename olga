@@ -357,7 +357,7 @@ sub on_public {
       $msg = "No, you're a towel!" if (rand() < $data->{towel});
     }
   }
-  elsif ($arg =~ m/((CMS[A-Z]+|CHR|GUR|WD|FR|HELPDESK)-[0-9]*)/) {
+  elsif ($arg =~ m/((CMS[A-Z]+|CHR|GUR|WD|FR|HELPDESK)-[0-9]+)/) {
     my $ticket = $1;
     if ($arg !~ m{browse/$1}) {
       # record recent tickets
@@ -395,7 +395,7 @@ sub on_public {
       }
     }
   }
-  elsif ($arg =~ m/^(([^;]*?)\s+(is|are|=)\s+([^;]*))$/i) {
+  elsif ($arg =~ m/^((\S*?)\s+(is|are|=)\s+([^;]*))$/i) {
     my ($sentence, $subject, $predicate) = ($1, $2, $4);
     if ($predicate =~ m/\`/) {
       $self->privmsg($to, "You can't even do that, so don't even try.");
