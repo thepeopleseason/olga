@@ -1,7 +1,7 @@
 #!/usr/bin/perl -s
 
 use strict;
-use vars qw($channel $mynick $data $irc $conn $james);
+use vars qw($channel $mynick $data $irc $conn $james $trans);
 use lib qw(/home/james/devel/cim/projects/01_olga);
 use Net::IRC;
 use Text::Wrap qw(fill $columns);
@@ -46,6 +46,7 @@ $data->{jsonfile} = "${mynick}_dat.json";
 &init_data($conn);
 
 $conn->add_handler(['376', '422'], \&on_connect);
+$conn->add_global_handler('disconnect', \&on_disconnect);
 $conn->add_handler('public', \&on_public);
 $conn->add_handler('msg', \&on_public);
 $conn->add_handler('join', \&on_join);
@@ -63,7 +64,7 @@ sub on_connect {
   if ($@) {
     print "$@";
   }
-  $data->{stfu}->{$channel} = 0;
+  $trans->{stfu}->{$channel} = 0;
 
   if ($mynick eq 'olga') {
     eval { $self->join("#qa"); };
@@ -71,9 +72,18 @@ sub on_connect {
       print "$@";
     }
   }
-  $data->{stfu}->{'#qa'} = 0;
+  $trans->{stfu}->{'#qa'} = 0;
 
   srand($$);
+}
+
+# Reconnect to the server when we die.
+sub on_disconnect {
+  my ($self, $event) = @_;
+
+  print "Disconnected from ". $event->from(), " (".
+    ($event->args())[0]. "). Attempting to reconnect...\n";
+  $self->connect();
 }
 
 sub on_join {
@@ -91,6 +101,10 @@ sub on_join {
   if ($event->userhost =~ m/$mgr_hosts$/i) {
     $self->mode("$channel", "+o", $event->nick);
   }
+
+  if ($event->userhost =~ m/$data->{userhost}$/i) {
+    push @{$trans->{master}}, $event->nick;
+  }
 }
 
 sub on_names {
@@ -106,6 +120,11 @@ sub on_nick {
 
   if ($event->userhost =~ m/$data->{userhost}$/i) {
     print Dumper($event);
+
+    my ($newnick, $oldnick) = (($event->args())[0], $event->nick);
+    my @nicks = grep { !/$oldnick/ } @{$trans->{master}};
+    push @nicks, $newnick;
+    $trans->{master} = \@nicks;
   }
 }
 
@@ -119,9 +138,9 @@ sub on_ping {
   &update_fails($self);
 
   my $time = time();
-  for my $channel (keys %{$data->{stfu}}) {
-    if ($time - $data->{stfu}->{$channel} > 300) {
-      $data->{stfu}->{$channel} = 0;
+  for my $channel (keys %{$trans->{stfu}}) {
+    if ($time - $trans->{stfu}->{$channel} > 300) {
+      $trans->{stfu}->{$channel} = 0;
     }
   }
 
@@ -239,11 +258,11 @@ sub on_public {
       $msg = "$1, " . &get_abuse();
     }
     elsif (($arg =~ /^stfu/i) && ($type eq 'public')) {
-      $data->{stfu}->{$channel} = time();
+      $trans->{stfu}->{$channel} = time();
       $msg = 'Right-o.';
     }
     elsif (($arg =~ /^speak/i) && ($type eq 'public')) {
-      $data->{stfu}->{$channel} = 0;
+      $trans->{stfu}->{$channel} = 0;
       $msg = 'Zug-zug.';
     }
     # elsif ($arg =~ /^rhetorical(.*)/) {
@@ -291,8 +310,12 @@ sub on_public {
         $msg = $2;
       }
       elsif ($arg =~ /^join (.*)/) {
-        $self->join($1);
-        $msg .= "joining $1";
+        my $newchan = $1;
+        $newchan = "#$newchan" unless $newchan =~ m/^#/;
+        $self->join($newchan);
+
+        $trans->{stfu}->{$newchan} = 0;
+        $msg .= "joining $newchan";
       }
       elsif ($arg =~ /^deop (\S+) (.+)/) {
         $to = $2;
@@ -303,6 +326,16 @@ sub on_public {
         $to = $nick;
         $self->mode("$2", "+o", $1);
         $msg .= "op $1 on $2";
+      }
+      elsif ($arg =~ /^dumptrans\s*(.*)/) {
+        if ($1) {
+          $to = $nick;
+          $msg = Dumper($trans->{$1});
+        }
+        else {
+          print Dumper($trans);
+          undef $msg;
+        }
       }
       elsif ($arg =~ /^dump\s*(.*)/) {
         if ($1) {
@@ -336,16 +369,37 @@ sub on_public {
       }
       elsif ($arg =~ /^die/) {
         &write_data();
-        $self->mode("$channel", "+o", "pendingo");
+        for my $chan (keys %{$trans->{stfu}}) {
+          for my $master (@{$trans->{master}}, "pendingo") {
+            $self->mode($chan, "+o", $master);
+          }
+        }
         exit();
       }
       elsif ($arg =~ /^setdata\s+(\S*)\s+(\S*)/) {
-        $data->{$1} = $2;
+        my ($k, $v) = ($1, $2);
+        if ($k =~ m/__/) {
+          my ($k1, $k2) = split(/__/, $k);
+          $data->{$k1}->{$k2} = $v;
+        }
+        else {
+          $data->{$k} = $v;
+        }
         $msg = "Updated";
       }
       elsif ($arg =~ /^killdata\s+(\S*)/) {
-        delete $data->{$1};
+        my $k = $1;
+        if ($k =~ m/__/) {
+          my ($k1, $k2) = split(/__/, $k);
+          delete $data->{$k1}->{$k2};
+        }
+        else {
+          delete $data->{$1};
+        }
         $msg .= "baleeted.";
+      }
+      elsif ($arg =~ /^keys/) {
+        $msg = join(', ', keys %$data);
       }
     }
     else {
@@ -364,27 +418,27 @@ sub on_public {
   elsif ($arg =~ /^(sudo )?(ls( .*)?|pwd|cd( .*)?|rm( .*)?)$/) {
     $msg = "this ain\'t your shell window";
     $self->privmsg($to, "$msg\n")
-      unless ($data->{stfu}->{$channel});
+      unless ($trans->{stfu}->{$channel});
   }
   elsif ($arg =~ /^(\:wq)$/) {
     $msg = "this ain\'t your vi";
     $self->privmsg($to, "$msg\n")
-      unless ($data->{stfu}->{$channel});
+      unless ($trans->{stfu}->{$channel});
   }
   elsif ($arg =~ /PAK.*UNF/) {
     $msg = $spacerobots[rand(@spacerobots)];
     $self->privmsg($to, "$msg\n")
-      unless ($data->{stfu}->{$channel});
+      unless ($trans->{stfu}->{$channel});
   }
   elsif ($arg =~ /pythonpath/i) {
     $msg = "If you're mucking with your PYTHONPATH, you're doing it wrong.";
     $self->privmsg($to,"$msg\n")
-      unless ($data->{stfu}->{$channel});
+      unless ($trans->{stfu}->{$channel});
   }
   elsif ($arg =~ /time\.sleep/i) {
     $msg = "If you're using time.sleep, you're doing it wrong.";
     $self->privmsg($to,"$msg\n")
-      unless ($data->{stfu}->{$channel});
+      unless ($trans->{stfu}->{$channel});
   }
   elsif ($arg =~ m/^You're a towel!/) {
     if ($nick eq "Towelie") {
@@ -396,24 +450,24 @@ sub on_public {
     if ($arg !~ m{browse/$1}) {
       # record recent tickets
       my $time = time();
-      if ($time - $data->{recent}->{$ticket}->{time} > 10*60) {
-        $data->{recent}->{$ticket}->{time} = time();
-        $data->{recent}->{$ticket}->{count} = 1;
+      if ($time - $trans->{recent}->{$ticket}->{time} > 10*60) {
+        $trans->{recent}->{$ticket}->{time} = time();
+        $trans->{recent}->{$ticket}->{count} = 1;
       }
       else {
-        if ($time - $data->{recent}->{$ticket}->{time} < 20) {
-          $data->{recent}->{$ticket}->{count}++;
+        if ($time - $trans->{recent}->{$ticket}->{time} < 20) {
+          $trans->{recent}->{$ticket}->{count}++;
         }
       }
 
       # check message type
-      if ($data->{recent}->{$ticket}->{count} > 4) {
+      if ($trans->{recent}->{$ticket}->{count} > 4) {
         undef $msg;
       }
-      elsif ($data->{recent}->{$ticket}->{count} > 3) {
+      elsif ($trans->{recent}->{$ticket}->{count} > 3) {
         $msg = "Seriously, dude. That's annoying. Quit it.";
       }
-      elsif ($data->{recent}->{$ticket}->{count} > 2) {
+      elsif ($trans->{recent}->{$ticket}->{count} > 2) {
         $msg = "Dude, quit it.";
       }
       else {
@@ -425,11 +479,11 @@ sub on_public {
       # output message
       if ($msg) {
         $self->privmsg($to, "$msg\n")
-          unless ($data->{stfu}->{$channel});
+          unless ($trans->{stfu}->{$channel});
       }
     }
   }
-  elsif ($arg =~ m/^((\S*?)\s+(is|are|=)\s+([^;]*))$/i) {
+  elsif ($arg =~ m/^((\S*?)\s+(is|are|=)\s+([^;\?]*))$/i) {
     my ($sentence, $subject, $predicate) = ($1, $2, $4);
     if ($predicate =~ m/\`/) {
       $self->privmsg($to, "You can't even do that, so don't even try.");
