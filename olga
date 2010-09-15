@@ -63,8 +63,15 @@ sub on_connect {
   if ($@) {
     print "$@";
   }
-
   $data->{stfu}->{$channel} = 0;
+
+  if ($mynick eq 'olga') {
+    eval { $self->join("#qa"); };
+    if ($@) {
+      print "$@";
+    }
+  }
+  $data->{stfu}->{'#qa'} = 0;
 
   srand($$);
 }
@@ -76,7 +83,12 @@ sub on_join {
   printf "*** %s (%s) has joined channel %s\n",
   $event->nick, $event->userhost, $channel;
 
-  if ($event->userhost =~ m/$data->{userhost}$/i) {
+  my @ops = qw( croddy mholcomb mchace jbruce rbronosky jheady
+                dviti cheisel golliher zmcghee jpreyer );
+  my $mgr_hosts = sprintf('(%s)\@cei-gla-cpk2\.coxinc\.com',
+                          join('|', @ops));
+
+  if ($event->userhost =~ m/$mgr_hosts$/i) {
     $self->mode("$channel", "+o", $event->nick);
   }
 }
@@ -100,10 +112,18 @@ sub on_nick {
 sub on_ping {
   my ($self, $event) = @_;
 
-  &update_bugs($self);
-  &update_fails($self);
   &update_latest();
   &update_horoscopes();
+  &update_bugs($self);
+  &update_resolves($self);
+  &update_fails($self);
+
+  my $time = time();
+  for my $channel (keys %{$data->{stfu}}) {
+    if ($time - $data->{stfu}->{$channel} > 300) {
+      $data->{stfu}->{$channel} = 0;
+    }
+  }
 
   &write_data();
 }
@@ -218,6 +238,14 @@ sub on_public {
     elsif ($arg =~ /^abuse\s+([^ ]*)/) {
       $msg = "$1, " . &get_abuse();
     }
+    elsif (($arg =~ /^stfu/i) && ($type eq 'public')) {
+      $data->{stfu}->{$channel} = time();
+      $msg = 'Right-o.';
+    }
+    elsif (($arg =~ /^speak/i) && ($type eq 'public')) {
+      $data->{stfu}->{$channel} = 0;
+      $msg = 'Zug-zug.';
+    }
     # elsif ($arg =~ /^rhetorical(.*)/) {
     #   $msg .= q(because they're stupid...);
     # }
@@ -262,14 +290,6 @@ sub on_public {
         $to = $1;
         $msg = $2;
       }
-      elsif (($arg =~ /^stfu/i) && ($type eq 'public')) {
-        $data->{stfu}->{$channel} = 1;
-        $msg = 'Right-o.';
-      }
-      elsif (($arg =~ /^speak/i) && ($type eq 'public')) {
-        $data->{stfu}->{$channel} = 0;
-        $msg = 'Zug-zug.';
-      }
       elsif ($arg =~ /^join (.*)/) {
         $self->join($1);
         $msg .= "joining $1";
@@ -299,8 +319,16 @@ sub on_public {
         delete $data->{hudson};
 
         &update_bugs($self, 1);
+        &update_resolves($self, 1);
         &update_fails($self, 1);
         &update_latest();
+      }
+      elsif ($arg =~ /^cleanfacts/) {
+        for my $key (keys %{$data->{facts}}) {
+          if ($key =~ m/\s/) {
+            delete $data->{facts}->{$key};
+          }
+        }
       }
       elsif ($arg =~ /^jsondump/) {
         &write_data();
@@ -308,6 +336,7 @@ sub on_public {
       }
       elsif ($arg =~ /^die/) {
         &write_data();
+        $self->mode("$channel", "+o", "pendingo");
         exit();
       }
       elsif ($arg =~ /^setdata\s+(\S*)\s+(\S*)/) {
@@ -349,6 +378,11 @@ sub on_public {
   }
   elsif ($arg =~ /pythonpath/i) {
     $msg = "If you're mucking with your PYTHONPATH, you're doing it wrong.";
+    $self->privmsg($to,"$msg\n")
+      unless ($data->{stfu}->{$channel});
+  }
+  elsif ($arg =~ /time\.sleep/i) {
+    $msg = "If you're using time.sleep, you're doing it wrong.";
     $self->privmsg($to,"$msg\n")
       unless ($data->{stfu}->{$channel});
   }
@@ -616,24 +650,61 @@ sub update_bugs {
 
   my $bugs_rss = 'http://jira.ddtc.cmgdigital.com/sr/jira.issueviews:searchrequest-xml/10204/SearchRequest-10204.xml';
 
-  my $rss = XML::RSS->new;
-  $rss->parse(get($bugs_rss));
+  eval {
+    my $rss = XML::RSS->new;
+    $rss->parse(get($bugs_rss));
 
-  for my $item (@{$rss->{'items'}}) {
-    unless ($data->{bugs}->{$item->{key}}) {
-      $data->{bugs}->{$item->{key}} = $item->{title};
+    for my $item (@{$rss->{'items'}}) {
+      unless ($data->{bugs}->{$item->{key}}) {
+        $data->{bugs}->{$item->{key}} = $item->{title};
 
-      unless ($init) {
-        my $id = $item->{key};
-        $id =~ s/[\[\]]//g;
-        my $url = sprintf("http://jira.ddtc.cmgdigital.com/browse/%s",
-                          $id);
+        unless ($init) {
+          my $id = $item->{key};
+          $id =~ s/[\[\]]//g;
+          my $url = sprintf("http://jira.ddtc.cmgdigital.com/browse/%s",
+                            $id);
           $self->privmsg($channel,
                          sprintf("*** New bug! %s %s\n",
                                  $item->{title}, $url)
                          );
+        }
       }
     }
+  };
+  if ($@) {
+    print "$@";
+  }
+}
+
+sub update_resolves {
+  my ($self, $init) = @_;
+
+  my $resolved_rss = 'http://jira.ddtc.cmgdigital.com/sr/jira.issueviews:searchrequest-xml/10239/SearchRequest-10239.xml?tempMax=25';
+
+  eval {
+    my $rss = XML::RSS->new;
+    $rss->parse(get($resolved_rss));
+
+
+    for my $item (@{$rss->{'items'}}) {
+      unless ($data->{resolves}->{$item->{key}}) {
+        $data->{resolves}->{$item->{key}} = $item->{title};
+
+        unless ($init) {
+          my $id = $item->{key};
+          $id =~ s/[\[\]]//g;
+          my $url = sprintf("http://jira.ddtc.cmgdigital.com/browse/%s",
+                            $id);
+          $self->privmsg("#qa",
+                         sprintf("*** Resolved! %s %s\n",
+                                 $item->{title}, $url)
+                         );
+        }
+      }
+    }
+  };
+  if ($@) {
+    print "$@";
   }
 }
 
@@ -643,6 +714,8 @@ sub update_fails {
   my $feed = XMLin(
     get('http://vcs.ddtc.cmgdigital.com:9191/hudson/rssFailed')
     );
+
+  my $skipfails = join('|', qw( gitstat ));
 
   for my $key (keys %{$feed->{entry}}) {
     my $entry = $feed->{entry}->{$key};
@@ -659,6 +732,7 @@ sub update_fails {
 
         $self->privmsg($channel,
                        "$entry->{title}: $entry->{link}->{href} $params\n")
+          unless ($entry->{title} =~ m/$skipfails/i)
       }
     }
   }
@@ -699,6 +773,7 @@ sub init_data {
 
   if (!-e $data->{jsonfile}) {
     &update_bugs($conn, 1);
+    &update_resolves($conn, 1);
     &update_fails($conn, 1);
     &update_latest();
     &update_horoscopes();
