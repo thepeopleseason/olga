@@ -765,30 +765,35 @@ sub update_resolves {
 sub update_fails {
   my ($self, $init) = @_;
 
-  my $feed = XMLin(
-    get('http://vcs.ddtc.cmgdigital.com:9191/hudson/rssFailed')
-    );
+  eval {
+    my $feed = XMLin(
+      get('http://vcs.ddtc.cmgdigital.com:9191/hudson/rssFailed')
+      );
 
-  my $skipfails = join('|', qw( gitstat ));
+    my $skipfails = join('|', qw( gitstat newmaster.signin ));
 
-  for my $key (keys %{$feed->{entry}}) {
-    my $entry = $feed->{entry}->{$key};
+    for my $key (keys %{$feed->{entry}}) {
+      my $entry = $feed->{entry}->{$key};
 
-    unless ($data->{hudson}->{$entry->{title}}) {
-      $data->{hudson}->{$entry->{title}} = $entry->{link}->{href};
-      unless ($init) {
-        my $params = get($entry->{link}->{href});
-        $params =~ s/^.*buildWithParameters\?([^"]*)".*$/$1/s;
+      unless ($data->{hudson}->{$entry->{title}}) {
+        $data->{hudson}->{$entry->{title}} = $entry->{link}->{href};
+        unless ($init) {
+          my $params = get($entry->{link}->{href});
+          $params =~ s/^.*buildWithParameters\?([^"]*)".*$/$1/s;
 
-        $params = join(' ',
-                       map { my ($k, $v) = split(/=/,$_); "$bParams{$k}: $v" }
-                       split(/\&amp;/, $params));
+          $params = join(' ',
+                         map { my ($k, $v) = split(/=/,$_); "$bParams{$k}: $v" }
+                         split(/\&amp;/, $params));
 
-        $self->privmsg($channel,
-                       "$entry->{title}: $entry->{link}->{href} $params\n")
-          unless ($entry->{title} =~ m/$skipfails/i)
+          $self->privmsg($channel,
+                         "$entry->{title}: $entry->{link}->{href} $params\n")
+            unless ($entry->{title} =~ m/$skipfails/i)
+        }
       }
     }
+  };
+  if ($@) {
+    print $@;
   }
 }
 
@@ -797,27 +802,32 @@ sub update_latest {
   my $dtf = DateTime::Format::W3CDTF->new;
 
   for my $url (@urls) {
-    my $feed =
-      XMLin(
-        get(sprintf(
-              'http://vcs.ddtc.cmgdigital.com:9191/hudson/%s',
-              $url,
-            )));
+    eval {
+      my $feed =
+        XMLin(
+          get(sprintf(
+                'http://vcs.ddtc.cmgdigital.com:9191/hudson/%s',
+                $url,
+              )));
 
-    for my $key (keys %{$feed->{entry}}) {
-      my $entry = $feed->{entry}->{$key};
+      for my $key (keys %{$feed->{entry}}) {
+        my $entry = $feed->{entry}->{$key};
 
-      my $latestkey = lc($entry->{title});
-      $latestkey =~ s/^(\S*)\s+.*/$1/;
+        my $latestkey = lc($entry->{title});
+        $latestkey =~ s/^(\S*)\s+.*/$1/;
 
-      my $dt = $dtf->parse_datetime($entry->{published})
-        ->set_time_zone('local');
+        my $dt = $dtf->parse_datetime($entry->{published})
+          ->set_time_zone('local');
 
-      $data->{latest}->{$latestkey} = sprintf('%s %s %s',
-                                              $dt->strftime('%F %T'),
-                                              $entry->{title},
-                                              $entry->{link}->{href},
+        $data->{latest}->{$latestkey} = sprintf('%s %s %s',
+                                                $dt->strftime('%F %T'),
+                                                $entry->{title},
+                                                $entry->{link}->{href},
         );
+      }
+    };
+    if ($@) {
+      print $@;
     }
   }
 }
