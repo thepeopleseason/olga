@@ -708,7 +708,9 @@ sub update_bugs {
     my $rss = XML::RSS->new;
     $rss->parse(get($bugs_rss));
 
+    my %confirmed;
     for my $item (@{$rss->{'items'}}) {
+      $confirmed{$item->{key}} = 1;
       unless ($data->{bugs}->{$item->{key}}) {
         $data->{bugs}->{$item->{key}} = $item->{title};
 
@@ -723,6 +725,10 @@ sub update_bugs {
                          );
         }
       }
+    }
+    for my $key (keys %{$data->{bugs}}) {
+      delete ($data->{bugs}->{$key})
+        unless $confirmed{$key};
     }
   };
   if ($@) {
