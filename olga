@@ -135,6 +135,7 @@ sub on_ping {
   &update_horoscopes();
   &update_bugs($self);
   &update_resolves($self);
+  &update_closed($self);
   &update_fails($self);
 
   my $time = time();
@@ -353,6 +354,7 @@ sub on_public {
 
         &update_bugs($self, 1);
         &update_resolves($self, 1);
+        &update_closed($self, 1);
         &update_fails($self, 1);
         &update_latest();
       }
@@ -415,7 +417,8 @@ sub on_public {
     }
     &fill_output($self, $msg, $to) unless $msg eq "$nick, ";
   }
-  elsif ($arg =~ /^(sudo )?(ls( .*)?|pwd|cd( .*)?|rm( .*)?)$/) {
+
+  if ($arg =~ /^(sudo )?(ls( .*)?|pwd|cd( .*)?|rm( .*)?)$/) {
     $msg = "this ain\'t your shell window";
     $self->privmsg($to, "$msg\n")
       unless ($trans->{stfu}->{$channel});
@@ -768,6 +771,35 @@ sub update_resolves {
   }
 }
 
+sub update_closed {
+  my ($self, $init) = @_;
+
+  my $closed_rss = 'http://jira.ddtc.cmgdigital.com/sr/jira.issueviews:searchrequest-xml/10303/SearchRequest-10303.xml?tempMax=1000';
+
+  eval {
+    my $rss = XML::RSS->new;
+    $rss->parse(get($closed_rss));
+
+    for my $item (@{$rss->{'items'}}) {
+      unless (grep { /^$item->{key}$/ } @{$data->{closed}}) {
+        push @{$data->{closed}}, $item->{key};
+
+        unless ($init) {
+          my $id = $item->{key};
+          $id =~ s/[\[\]]//g;
+          $self->privmsg("#all",
+                         sprintf("*** Closed! %s %s\n",
+                                 $item->{title}, $id)
+                         );
+        }
+      }
+    }
+  };
+  if ($@) {
+    print "$@";
+  }
+}
+
 sub update_fails {
   my ($self, $init) = @_;
 
@@ -844,6 +876,7 @@ sub init_data {
   if (!-e $data->{jsonfile}) {
     &update_bugs($conn, 1);
     &update_resolves($conn, 1);
+    &update_closed($conn, 1);
     &update_fails($conn, 1);
     &update_latest();
     &update_horoscopes();
