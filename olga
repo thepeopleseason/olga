@@ -378,7 +378,7 @@ sub on_public {
         }
         exit();
       }
-      elsif ($arg =~ /^setdata\s+(\S*)\s+(\S*)/) {
+      elsif ($arg =~ /^setdata\s+(\S*)\s+(.*)/) {
         my ($k, $v) = ($1, $2);
         if ($k =~ m/__/) {
           my ($k1, $k2) = split(/__/, $k);
