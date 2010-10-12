@@ -41,7 +41,7 @@ $conn = $irc->newconn(
   Password => 'xXxXxXxXxXx',
   );
 
-$data->{userhost} = '(james\@.*\.coxinc\.com|James_Hsi\@.*direcpath.com)';
+$data->{userhost} = '(j(ames|hsiao)\@.*\.coxinc\.com|James_Hsi\@.*direcpath.com)';
 $data->{jsonfile} = "${mynick}_dat.json";
 &init_data($conn);
 
@@ -164,7 +164,14 @@ sub on_public {
   }
 
   if (($type eq "msg") && ($userhost !~ m/$data->{userhost}$/i)) {
-    print Dumper($event);
+    my %done;
+    for my $master (@{$trans->{master}}) {
+      my $pmsg = sprintf(qq(%s /msg me: %s), $event->nick, join(' ',@{$event->args}));
+      unless ($done{$master}) {
+        $self->privmsg($master, $pmsg);
+        $done{$master} = 1;
+      }
+    }
   }
 
   if (($type eq "msg") || ($arg =~ /^$mynick/i)) {
@@ -774,7 +781,7 @@ sub update_resolves {
 sub update_closed {
   my ($self, $init) = @_;
 
-  my $closed_rss = 'http://jira.ddtc.cmgdigital.com/sr/jira.issueviews:searchrequest-xml/10303/SearchRequest-10303.xml?tempMax=1000';
+  my $closed_rss = 'http://jira.ddtc.cmgdigital.com/sr/jira.issueviews:searchrequest-xml/10303/SearchRequest-10303.xml?tempMax=50';
 
   eval {
     my $rss = XML::RSS->new;
