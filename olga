@@ -166,7 +166,7 @@ sub on_public {
   if (($type eq "msg") && ($userhost !~ m/$data->{userhost}$/i)) {
     my %done;
     for my $master (@{$trans->{master}}) {
-      my $pmsg = sprintf(qq(%s /msg me: %s), $event->nick, join(' ',@{$event->args}));
+      my $pmsg = sprintf(qq(%s /msg'd me: %s), $event->nick, Dumper($event->args));
       unless ($done{$master}) {
         $self->privmsg($master, $pmsg);
         $done{$master} = 1;
@@ -447,6 +447,16 @@ sub on_public {
   }
   elsif ($arg =~ /time\.sleep/i) {
     $msg = "If you're using time.sleep, you're doing it wrong.";
+    $self->privmsg($to,"$msg\n")
+      unless ($trans->{stfu}->{$channel});
+  }
+  elsif ($arg =~ m/^SPROUT/) {
+    $msg = "CORE!";
+    $self->privmsg($to,"$msg\n")
+      unless ($trans->{stfu}->{$channel});
+  }
+  elsif ($arg =~ m/^MOVABLE/) {
+    $msg = "TYPE!";
     $self->privmsg($to,"$msg\n")
       unless ($trans->{stfu}->{$channel});
   }
@@ -815,7 +825,7 @@ sub update_fails {
       get('http://vcs.ddtc.cmgdigital.com:9191/hudson/rssFailed')
       );
 
-    my $skipfails = join('|', qw( gitstat newmaster.signin ));
+    my $skipfails = join('|', qw( gitstat newmaster.signin selenium ));
 
     for my $key (keys %{$feed->{entry}}) {
       my $entry = $feed->{entry}->{$key};
