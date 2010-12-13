@@ -24,6 +24,29 @@ my @spacerobots =
  "Shoving will protect you from the terrible secret of space.",
 );
 
+my @eightball = (
+  "As I see it, yes",
+  "It is certain",
+  "It is decidedly so",
+  "Most likely",
+  "Outlook good",
+  "Signs point to yes",
+  "Without a doubt",
+  "Yes",
+  "Yes – definitely",
+  "You may rely on it",
+  "Reply hazy, try again",
+  "Ask again later",
+  "Better not tell you now",
+  "Cannot predict now",
+  "Concentrate and ask again",
+  "Don't count on it",
+  "My reply is no",
+  "My sources say no",
+  "Outlook not so good",
+  "Very doubtful",
+  );
+
 my %bParams = qw(ELLINGTON_BRANCH Ell TEMPLATE_BRANCH MT
   YOUR_NAME Who BRANCH SV);
 
@@ -34,7 +57,7 @@ $irc = new Net::IRC;
 $mynick = 'olga' if (!$mynick);
 $conn = $irc->newconn(
   Nick => "$mynick",
-  Server => 'irc.cmgdigital.com',
+  Server => 'xXxXxXxXxXx',
   Port => 6667,
   Ircname => 'Whatcha lookin at, bichachi?',
   Username => "$mynick",
@@ -133,10 +156,10 @@ sub on_ping {
 
   &update_latest();
   &update_horoscopes();
-  &update_bugs($self);
-  &update_resolves($self);
-  &update_closed($self);
-  &update_fails($self);
+  # &update_bugs($self);
+  # &update_resolves($self);
+  # &update_closed($self);
+  # &update_fails($self);
 
   my $time = time();
   for my $channel (keys %{$trans->{stfu}}) {
@@ -258,6 +281,9 @@ sub on_public {
     }
     elsif ($arg =~ /^(saurus|roget)\s+(.*)/) {
       $msg .= &saurus($2);
+    }
+    elsif ($arg =~ /^8ball/) {
+      $msg .= $eightball[rand(@eightball)];
     }
     elsif ($arg =~ /^sniglet(.*)/) {
       $msg .= &get_sniglet($1);
@@ -752,7 +778,7 @@ sub update_bugs {
     }
   };
   if ($@) {
-    print "$@";
+    print "update_bugs: $@";
   }
 }
 
@@ -784,7 +810,7 @@ sub update_resolves {
     }
   };
   if ($@) {
-    print "$@";
+    print "update_resolves: $@";
   }
 }
 
@@ -813,7 +839,7 @@ sub update_closed {
     }
   };
   if ($@) {
-    print "$@";
+    print "update_closes: $@";
   }
 }
 
