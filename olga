@@ -24,6 +24,12 @@ my @spacerobots =
  "Shoving will protect you from the terrible secret of space.",
 );
 
+my @about =
+  (
+   'may be talking about',
+   'is probably referring to',
+  );
+
 my @eightball = (
   "As I see it, yes",
   "It is certain",
@@ -94,8 +100,17 @@ sub on_connect {
     if ($@) {
       print "$@";
     }
+    else {
+      $trans->{stfu}->{'#qa'} = 0;
+    }
+    eval { $self->join("#bots"); };
+    if ($@) {
+      print "$@";
+    }
+    else {
+      $trans->{stfu}->{'#bots'} = 0;
+    }
   }
-  $trans->{stfu}->{'#qa'} = 0;
 
   srand($$);
 }
@@ -518,8 +533,8 @@ sub on_public {
       }
       else {
         $msg =
-          "$nick may be talking about: " .
-          "http://jira.ddtc.cmgdigital.com/browse/$1";
+          sprintf("%s %s %s", $nick, $about[rand(@about)],
+                  "https://jira.cmgdigital.com/browse/$1");
       }
 
       # output message
@@ -531,15 +546,16 @@ sub on_public {
   }
   elsif ($arg =~ m/^((\S*?)\s+(is|are|=)\s+([^;\?]*))$/i) {
     my ($sentence, $subject, $predicate) = ($1, $2, $4);
+    my $ts = sprintf("%s at %s", $nick, scalar localtime());
     if ($predicate =~ m/\`/) {
       $self->privmsg($to, "You can't even do that, so don't even try.");
     }
     elsif ($predicate =~ m/^<reply>\s*/) {
       $predicate =~ s/^<reply>\s*//;
-      $data->{facts}->{lc($subject)} = "$predicate ($nick)";
+      $data->{facts}->{lc($subject)} = "$predicate ($ts)";
     }
     else {
-      $data->{facts}->{lc($subject)} = "$sentence ($nick)"
+      $data->{facts}->{lc($subject)} = "$sentence ($ts)"
         unless $data->{facts}->{lc($subject)};
     }
   }
