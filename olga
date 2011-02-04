@@ -24,6 +24,13 @@ my @spacerobots =
  "Shoving will protect you from the terrible secret of space.",
 );
 
+my @panic =
+(
+ "http://twitpic.com/3u9fuk",
+ "http://twitpic.com/3u9f5m",
+ "http://twitpic.com/3u9fk7",
+);
+
 my @about =
   (
    'may be talking about',
@@ -70,7 +77,7 @@ $conn = $irc->newconn(
   Password => 'xXxXxXxXxXx',
   );
 
-$data->{userhost} = '(j(ames|hsiao)\@.*\.coxinc\.com|James_Hsi\@.*direcpath.com)';
+$data->{userhost} = '(j(ames|hsiao)\@.*|James_Hsi\@.*direcpath.com)';
 $data->{jsonfile} = "${mynick}_dat.json";
 &init_data($conn);
 
@@ -169,7 +176,7 @@ sub on_nick {
 sub on_ping {
   my ($self, $event) = @_;
 
-  &update_latest();
+  # &update_latest();
   &update_horoscopes();
   # &update_bugs($self);
   # &update_resolves($self);
@@ -498,6 +505,11 @@ sub on_public {
   }
   elsif ($arg =~ m/^MOVABLE/) {
     $msg = "TYPE!";
+    $self->privmsg($to,"$msg\n")
+      unless ($trans->{stfu}->{$channel});
+  }
+  elsif ($arg =~ m/^(panic|shock|screen ?pass)/) {
+    $msg = $panic[rand(@panic)];
     $self->privmsg($to,"$msg\n")
       unless ($trans->{stfu}->{$channel});
   }
