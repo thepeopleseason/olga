@@ -77,7 +77,7 @@ $conn = $irc->newconn(
   Password => 'xXxXxXxXxXx',
   );
 
-$data->{userhost} = '(j(ames|hsiao)\@.*|James_Hsi)';
+$trans->{userhost} = '(j(ames|hsiao)|James_Hsi)';
 $data->{jsonfile} = "${mynick}_dat.json";
 &init_data($conn);
 
@@ -138,7 +138,7 @@ sub on_join {
   printf "*** %s (%s) has joined channel %s\n",
   $event->nick, $event->userhost, $channel;
 
-  if ($event->userhost =~ m/$data->{userhost}$/i) {
+  if ($event->userhost =~ m/$trans->{userhost}/i) {
     push @{$trans->{master}}, $event->nick;
   }
 }
@@ -155,7 +155,7 @@ sub on_nick {
   my ($channel) = ($event->to)[0];
 
   print Dumper($event);
-  if ($event->userhost =~ m/$data->{userhost}$/i) {
+  if ($event->userhost =~ m/$trans->{userhost}/i) {
     my ($newnick, $oldnick) = (($event->args())[0], $event->nick);
     my @nicks = grep { !/$oldnick/ } @{$trans->{master}};
     push @nicks, $newnick;
@@ -337,7 +337,7 @@ sub on_public {
       $msg .= sprintf("Usage: $mynick <%s>", join('|', @funcs));
     }
     # master commands
-    elsif ($userhost =~ m/$data->{userhost}$/i) {
+    elsif ($userhost =~ m/$trans->{userhost}/i) {
       if ($arg =~ /^say (\S+) (.+)/i) {
         $to = $1;
         $msg = $2;
@@ -370,6 +370,19 @@ sub on_public {
           undef $msg;
         }
       }
+      elsif ($arg =~ /^keystrans\s*(.*)/) {
+        if ($1) {
+          $to = $nick;
+          $msg = join(' ', ref($trans->{$1}) eq 'HASH'
+                      ? keys %{$trans->{$1}}
+                      : $trans->{$1}
+            );
+        }
+        else {
+          $to = $nick;
+          $msg = join(' ', keys %$trans);
+        }
+      }
       elsif ($arg =~ /^dump\s*(.*)/) {
         if ($1) {
           $to = $nick;
@@ -378,6 +391,19 @@ sub on_public {
         else {
           print Dumper($data);
           undef $msg;
+        }
+      }
+      elsif ($arg =~ /^keys\s*(.*)/) {
+        if ($1) {
+          $to = $nick;
+          $msg = join(' ', ref($data->{$1}) eq 'HASH'
+                      ? keys %{$data->{$1}}
+                      : $data->{$1}
+            );
+        }
+        else {
+          $to = $nick;
+          $msg = join(' ', keys %$data);
         }
       }
       elsif ($arg =~ /^cleanfacts/) {
