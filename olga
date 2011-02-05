@@ -77,7 +77,7 @@ $conn = $irc->newconn(
   Password => 'xXxXxXxXxXx',
   );
 
-$data->{userhost} = '(j(ames|hsiao)\@.*|James_Hsi\@.*direcpath.com)';
+$data->{userhost} = '(j(ames|hsiao)\@.*|James_Hsi)';
 $data->{jsonfile} = "${mynick}_dat.json";
 &init_data($conn);
 
@@ -138,15 +138,6 @@ sub on_join {
   printf "*** %s (%s) has joined channel %s\n",
   $event->nick, $event->userhost, $channel;
 
-  my @ops = qw( croddy mholcomb mchace jbruce rbronosky jheady
-                dviti cheisel golliher zmcghee jpreyer );
-  my $mgr_hosts = sprintf('(%s)\@cei-gla-cpk2\.coxinc\.com',
-                          join('|', @ops));
-
-  if ($event->userhost =~ m/$mgr_hosts$/i) {
-    $self->mode("$channel", "+o", $event->nick);
-  }
-
   if ($event->userhost =~ m/$data->{userhost}$/i) {
     push @{$trans->{master}}, $event->nick;
   }
@@ -163,9 +154,8 @@ sub on_nick {
   my ($self, $event) = @_;
   my ($channel) = ($event->to)[0];
 
+  print Dumper($event);
   if ($event->userhost =~ m/$data->{userhost}$/i) {
-    print Dumper($event);
-
     my ($newnick, $oldnick) = (($event->args())[0], $event->nick);
     my @nicks = grep { !/$oldnick/ } @{$trans->{master}};
     push @nicks, $newnick;
@@ -199,28 +189,15 @@ sub on_public {
     ($event->nick, $event->userhost, $event->args, $event->type);
   my $msg = "$nick, ";
 
-  my $to;
   my $channel = ($event->to)[0];
-  if ($type eq 'msg') {
-    $to = $nick;
-  }
-  else {
-    $to = $channel;
+  my $to = $type eq 'msg' ? $nick : $channel;
+
+  if ($type eq "msg") {
+    print sprintf(qq(%s /msg'd me: %s), $event->nick, Dumper($event->args));
   }
 
-  if (($type eq "msg") && ($userhost !~ m/$data->{userhost}$/i)) {
-    my %done;
-    for my $master (@{$trans->{master}}) {
-      my $pmsg = sprintf(qq(%s /msg'd me: %s), $event->nick, Dumper($event->args));
-      unless ($done{$master}) {
-        $self->privmsg($master, $pmsg);
-        $done{$master} = 1;
-      }
-    }
-  }
-
-  if (($type eq "msg") || ($arg =~ /^$mynick/i)) {
-    $arg =~ s/^$mynick\s*[,:]?\s*//;
+  if (($type eq "msg") || ($arg =~ /^\s*$mynick/i)) {
+    $arg =~ s/^\s*$mynick\s*[,:]?\s*//;
 
     if ($arg =~ /^bugcount\s*(.*)/) {
       my $filter = $1;
@@ -342,7 +319,7 @@ sub on_public {
 
       if ($1 !~ /sagittarius/i) {
         $msg = "$1, you're gonna die";
-        $msg .= " . . . twice" if ($1 =~ /gemini/i);
+        $msg .= " twice" if ($1 =~ /gemini/i);
         $msg .= ".";
       }
       else {
@@ -350,13 +327,13 @@ sub on_public {
       }
     }
     elsif ($arg =~ /^forget\s+(.*)/) {
-      delete $data->{facts}->{$1};
+      delete $data->{facts}->{lc($1)};
       $msg .= "baleeted.";
     }
     elsif ($arg =~ /^help/) {
-      my @funcs = qw(bugcount stock quote dow nasdaq s&p haiku tanka
+      my @funcs = qw(stock quote dow nasdaq s&p haiku tanka
                      scope saurus roget sniglet abuse morse
-                     horoscope forget latest);
+                     horoscope forget);
       $msg .= sprintf("Usage: $mynick <%s>", join('|', @funcs));
     }
     # master commands
@@ -402,16 +379,6 @@ sub on_public {
           print Dumper($data);
           undef $msg;
         }
-      }
-      elsif ($arg =~ /^refresh/) {
-        delete $data->{bugs};
-        delete $data->{hudson};
-
-        &update_bugs($self, 1);
-        &update_resolves($self, 1);
-        &update_closed($self, 1);
-        &update_fails($self, 1);
-        &update_latest();
       }
       elsif ($arg =~ /^cleanfacts/) {
         for my $key (keys %{$data->{facts}}) {
@@ -473,7 +440,8 @@ sub on_public {
     &fill_output($self, $msg, $to) unless $msg eq "$nick, ";
   }
 
-  if ($arg =~ /^(sudo )?(ls( .*)?|pwd|cd( .*)?|rm( .*)?)$/) {
+  # Unaddressed responses
+  if ($arg =~ /^(sudo |ls( .*)?|pwd|cd( .*)?|rm( .*)?)$/) {
     $msg = "this ain\'t your shell window";
     $self->privmsg($to, "$msg\n")
       unless ($trans->{stfu}->{$channel});
@@ -513,12 +481,7 @@ sub on_public {
     $self->privmsg($to,"$msg\n")
       unless ($trans->{stfu}->{$channel});
   }
-  elsif ($arg =~ m/^You're a towel!/) {
-    if ($nick eq "Towelie") {
-      $msg = "No, you're a towel!" if (rand() < $data->{towel});
-    }
-  }
-  elsif ($arg =~ m/((CMS[A-Z]+|CHR|GUR|WD|FR|HELPDESK)-[0-9]+)/) {
+  elsif ($arg =~ m/((CMS[A-Z]+|CHR|GUR|WD|FR|HELPDESK|SUPPORT)-[0-9]+)/) {
     my $ticket = $1;
     if ($arg !~ m{browse/$1}) {
       # record recent tickets
@@ -556,9 +519,12 @@ sub on_public {
       }
     }
   }
+  # store facts
   elsif ($arg =~ m/^((\S*?)\s+(is|are|=)\s+([^;\?]*))$/i) {
     my ($sentence, $subject, $predicate) = ($1, $2, $4);
-    my $ts = sprintf("%s at %s", $nick, scalar localtime());
+    my $ts = sprintf("%s at %04d%02d%02d.%02d%02d", $nick,
+                     (localtime())[5]+1900,(localtime())[4]+1,
+                     (localtime())[3,2,1]);
     if ($predicate =~ m/\`/) {
       $self->privmsg($to, "You can't even do that, so don't even try.");
     }
@@ -571,6 +537,7 @@ sub on_public {
         unless $data->{facts}->{lc($subject)};
     }
   }
+  # display facts
   elsif ($arg =~ m/^(.*)\?$/) {
     $self->privmsg($to, $data->{facts}->{lc($1)});
   }
@@ -945,11 +912,11 @@ sub init_data {
   my ($conn) = @_;
 
   if (!-e $data->{jsonfile}) {
-    &update_bugs($conn, 1);
-    &update_resolves($conn, 1);
-    &update_closed($conn, 1);
-    &update_fails($conn, 1);
-    &update_latest();
+    #&update_bugs($conn, 1);
+    #&update_resolves($conn, 1);
+    #&update_closed($conn, 1);
+    #&update_fails($conn, 1);
+    #&update_latest();
     &update_horoscopes();
 
     &write_data();
