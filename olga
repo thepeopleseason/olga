@@ -267,7 +267,9 @@ sub on_public {
       }
     }
     elsif ($arg =~ /^scope\s*(.*)/i) {
-      $msg = $data->{horoscopes}->{lc($1)};
+      $msg = lc($1) eq 'ophiuchus'
+        ? q(Dude, it's arbitary and fake anyways.)
+        : $data->{horoscopes}->{lc($1)};
     }
 	# elsif ($arg =~ /^countdown\s+(\d+)/) {
 	#     if ($1 < 180) {
@@ -311,10 +313,10 @@ sub on_public {
                       all these years--you know, about how you came from the
                       planet Lovemania in order to teach all earthlings how to
                       feel horny for clouds, trees, tigers, and even the ocean
-                      itself!  Is my dream true? Please say it is!  Tell me
+                      itself! Is my dream true? Please say it is! Tell me
                       you're really ready to drop your overly respectable pose
                       so that you may spread erotic healing throughout the
-                      land!  Dare to become the sublimely lustful worshiper of
+                      land! Dare to become the sublimely lustful worshiper of
                       beauty and truth you were born to be!";
 
       if ($1 !~ /sagittarius/i) {
@@ -962,3 +964,4 @@ sub write_data {
   print FILE $json;
   close(FILE);
 }
+
