@@ -1,6 +1,26 @@
 
 sub master {
-  my ($self, $data, $trans, $to, $msg, $arg) = @_;
+  my %args = @_;
+
+  my ($to, $msg, $data, $trans,
+      $self, $arg, $nick, $userhost) = ($args{to},
+                                        $args{msg},
+                                        $args{data},
+                                        $args{trans},
+                                        $args{self},
+                                        $args{arg},
+                                        $args{nick},
+                                        $args{userhost}
+    );
+
+  if ($userhost !~ m/$trans->{userhost}/i) {
+    return +{
+      data => $data,
+      trans => $trans,
+      to => $nick,
+      msg => "Nice try",
+    };
+  }
 
   # master commands
   if ($arg =~ /^say (\S+) (.+)/i) {
@@ -139,3 +159,5 @@ sub ckpasswd {
   return '' unless ($plain && $encrypted);
   return ($encrypted eq crypt($plain, $encrypted));
 }
+
+1;

@@ -13,6 +13,7 @@ use Data::Dumper;
 
 require "movie_quotes.pl";
 require "movie_trivia.pl";
+require "admin.pl";
 
 $columns = 450;
 
@@ -339,12 +340,22 @@ sub on_public {
       $msg .= sprintf("Usage: $mynick <%s>", join('|', @funcs));
     }
     # master commands
-    elsif ($userhost =~ m/$trans->{userhost}/i) {
-      my $return = &master($self, $data, $trans, $to, $msg, $arg);
-      $data = $return->{data}
-      $trans = $return->{trans}
-      $to = $return->{to}
-      $msg = $return->{msg}
+    elsif ($arg =~ /^admin/) {
+      $arg =~ s/^admin\s*//;
+      my $return = &master(self => $self,
+                           data => $data,
+                           trans => $trans,
+                           to => $to,
+                           msg => $msg,
+                           arg => $arg,
+                           nick => $nick,
+                           userhost => $userhost
+        );
+      $data = $return->{data};
+      $trans = $return->{trans};
+      $to = $return->{to};
+      $msg = $return->{msg};
+      print "FOOBAR:",$return->{to}, $return->{msg},"\n";
     }
     else {
       my (@wit) =
@@ -535,9 +546,10 @@ sub saurus {
                     $apikey, $args[0]
     );
 
+  my $hash;
   eval {
-    my $hash = decode_json(get($url));
-  }
+    $hash = decode_json(get($url));
+  };
   if ($@) {
     print "saurus: $@";
   }
