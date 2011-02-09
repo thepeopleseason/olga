@@ -355,7 +355,6 @@ sub on_public {
       $trans = $return->{trans};
       $to = $return->{to};
       $msg = $return->{msg};
-      print "FOOBAR:",$return->{to}, $return->{msg},"\n";
     }
     else {
       my (@wit) =
