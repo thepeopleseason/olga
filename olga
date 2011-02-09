@@ -234,7 +234,7 @@ sub on_public {
       $msg = &get_stockprice($index{$1});
     }
     elsif ($arg =~ m/^haiku\s*(.*)/i) {
-      if ($1) {
+      if ($1 && $nick ne 'mburns') {
         &haiku($self, $to, $1);
       }
       else {
@@ -504,7 +504,7 @@ sub on_public {
     $self->privmsg($to,"$msg\n")
       unless ($trans->{stfu}->{$channel});
   }
-  elsif ($arg =~ m/^(panic|shock|screen ?pass)/) {
+  elsif ($arg =~ m/(panic|shock|screen ?pass)/) {
     $msg = $panic[rand(@panic)];
     $self->privmsg($to,"$msg\n")
       unless ($trans->{stfu}->{$channel});
@@ -643,7 +643,12 @@ sub saurus {
                     $apikey, $args[0]
     );
 
-  my $hash = decode_json(get($url));
+  eval {
+    my $hash = decode_json(get($url));
+  }
+  if ($@) {
+    print "saurus: $@";
+  }
 
   my $result = "$args[0]: ";
   for my $key (keys %$hash) {
