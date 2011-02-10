@@ -1,3 +1,4 @@
 *.json
 screenlog*
 admin.pl
+config.pl

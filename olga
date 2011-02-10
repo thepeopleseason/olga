@@ -14,6 +14,7 @@ use Data::Dumper;
 require "movie_quotes.pl";
 require "movie_trivia.pl";
 require "admin.pl";
+require "config.pl";
 
 $columns = 450;
 
@@ -71,11 +72,11 @@ $irc = new Net::IRC;
 $mynick = 'olga' if (!$mynick);
 $conn = $irc->newconn(
   Nick => "$mynick",
-  Server => 'xXxXxXxXxXx',
+  Server => $config::server,
   Port => 6667,
   Ircname => 'Whatcha lookin at, bichachi?',
   Username => "$mynick",
-  Password => 'xXxXxXxXxXx',
+  Password => $config::pw,
   );
 
 $trans->{userhost} = '(j(ames|hsiao)|James_Hsi)';
