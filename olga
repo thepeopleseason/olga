@@ -585,7 +585,7 @@ sub get_stockprice {
 
 sub get_morse {
   my $inarg = shift;
-  my ($result, $trans, $splitter);
+  my ($result, $trans, $splitter, $joiner);
 
   my %alpha2morse =
     ( 'a', '.-', 'b', '-...', 'c', '-.-.', 'd', '-..', 'e', '.', 'f',
@@ -603,19 +603,16 @@ sub get_morse {
     $inarg = lc($inarg);
     $trans = \%alpha2morse;
     $splitter = "";
+    $joiner = " ";
   }
   else {
     $inarg =~ s/\_/\-/g;
     $trans = \%morse2alpha;
     $splitter = " ";
-  }
-  my @morsey = split (/$splitter/, $inarg);
-
-  foreach my $elem (@morsey) {
-    $result .= $trans->{"$elem"}," ";
+    $joiner = "";
   }
 
-  return $result;
+  return join($joiner, map { $trans->{$_} } split(/$splitter/, $inarg));
 }
 
 sub update_horoscopes {
