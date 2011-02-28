@@ -297,8 +297,9 @@ sub on_public {
         $msg = "$3, ";
       }
       $msg .= "http://is.gd/KOS2vx";
-    elsif ($arg =~ /^jquery(.*)/) {
-      $msg .= &get_jquery();
+    }
+    elsif ($arg =~ /^jquery(\s+(.*))?/) {
+      $msg .= &get_jquery($2);
     }
     elsif ($arg =~ /^abuse\s+([^ ]*)/) {
       $msg = "$1, " . &get_abuse();
