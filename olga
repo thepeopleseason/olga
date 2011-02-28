@@ -682,8 +682,9 @@ sub get_jquery {
   open(JPI,"<$jqueryapi") || warn "Can't open $jqueryapi: $!";
   if ($arg) {
     while (<JPI>) {
+      # TODO: we should probably load this file into place and then
+      # create a hash, but i'm too lazy to do so.
       my ($cmd, undef) = split(/ -- /, $_);
-      print "$arg\t$cmd\n";
       $result = $_ if $cmd =~ m/$arg/i;
     }
   }
