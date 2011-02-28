@@ -676,7 +676,16 @@ sub get_jquery {
     my ($jqueryapi) = ("data/jquery.api.1.5.0.txt");
     my ($result);
 
-    open(JPI,"<$jqueryapi") || warn "Can't open $jqueryapi: $!";
+  open(JPI,"<$jqueryapi") || warn "Can't open $jqueryapi: $!";
+  if ($arg) {
+    while (<JPI>) {
+      # TODO: we should probably load this file into place and then
+      # create a hash, but i'm too lazy to do so.
+      my ($cmd, undef) = split(/ -- /, $_);
+      $result = $_ if $cmd =~ m/$arg/i;
+    }
+  }
+  else {
     rand($.) < 1 && ($result = $_) while <JPI>;
     close JPI;
     $result = "I dunno..." if (!$result);
