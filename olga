@@ -298,6 +298,9 @@ sub on_public {
       }
       $msg .= "http://is.gd/KOS2vx";
     }
+    elsif ($arg =~ /^jquery\s+(.*)/) {
+      $msg .= &get_jquery($1);
+    }
     elsif ($arg =~ /^abuse\s+([^ ]*)/) {
       $msg = "$1, " . &get_abuse();
     }
@@ -344,7 +347,7 @@ sub on_public {
     elsif ($arg =~ /^help/) {
       my @funcs = qw(stock quote dow nasdaq s&p haiku tanka
                      scope saurus roget sniglet abuse morse
-                     horoscope forget);
+                     horoscope forget jquery);
       $msg .= sprintf("Usage: $mynick <%s>", join('|', @funcs));
     }
     # master commands
@@ -666,6 +669,28 @@ sub get_sniglet {
     rand($.) < 1 && ($result = $_) while <SNG>;
   }
   close SNG;
+  $result = "I dunno..." if (!$result);
+  return $result;
+}
+
+sub get_jquery {
+  my ($arg) = @_;
+
+  my ($jqueryapi) = ("data/jquery.api.1.5.0.txt");
+  my ($result);
+
+  open(JPI,"<$jqueryapi") || warn "Can't open $jqueryapi: $!";
+  if ($arg) {
+    while (<JPI>) {
+      my ($cmd, undef) = split(/ -- /, $_);
+      print "$arg\t$cmd\n";
+      $result = $_ if $cmd =~ m/$arg/i;
+    }
+  }
+  else {
+    rand($.) < 1 && ($result = $_) while <JPI>;
+  }
+  close JPI;
   $result = "I dunno..." if (!$result);
   return $result;
 }
