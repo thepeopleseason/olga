@@ -422,6 +422,28 @@ sub on_public {
     $self->privmsg($to,"$msg\n")
       unless ($trans->{stfu}->{$channel});
   }
+  # store facts
+  elsif ($arg =~ m/^((\S*?)\s+(is|are|=)\s+([^;\?]*))$/i) {
+    my ($sentence, $subject, $predicate) = ($1, $2, $4);
+    my $ts = sprintf("%s at %04d%02d%02d.%02d%02d", $nick,
+                     (localtime())[5]+1900,(localtime())[4]+1,
+                     (localtime())[3,2,1]);
+    if ($predicate =~ m/\`/) {
+      $self->privmsg($to, "You can't even do that, so don't even try.");
+    }
+    elsif ($predicate =~ m/^<reply>\s*/) {
+      $predicate =~ s/^<reply>\s*//;
+      $data->{facts}->{lc($subject)} = "$predicate ($ts)";
+    }
+    else {
+      $data->{facts}->{lc($subject)} = "$sentence ($ts)"
+        unless $data->{facts}->{lc($subject)};
+    }
+  }
+  # display facts
+  elsif ($arg =~ m/^(.*)\?$/) {
+    $self->privmsg($to, $data->{facts}->{lc($1)});
+  }
   elsif ($arg =~ m/((CMS[A-Z]+|CHR|GUR|WD|FR|HELPDESK|SUPPORT)-[0-9]+)/) {
     my $ticket = $1;
     if ($arg !~ m{browse/$1}) {
@@ -459,28 +481,6 @@ sub on_public {
           unless ($trans->{stfu}->{$channel});
       }
     }
-  }
-  # store facts
-  elsif ($arg =~ m/^((\S*?)\s+(is|are|=)\s+([^;\?]*))$/i) {
-    my ($sentence, $subject, $predicate) = ($1, $2, $4);
-    my $ts = sprintf("%s at %04d%02d%02d.%02d%02d", $nick,
-                     (localtime())[5]+1900,(localtime())[4]+1,
-                     (localtime())[3,2,1]);
-    if ($predicate =~ m/\`/) {
-      $self->privmsg($to, "You can't even do that, so don't even try.");
-    }
-    elsif ($predicate =~ m/^<reply>\s*/) {
-      $predicate =~ s/^<reply>\s*//;
-      $data->{facts}->{lc($subject)} = "$predicate ($ts)";
-    }
-    else {
-      $data->{facts}->{lc($subject)} = "$sentence ($ts)"
-        unless $data->{facts}->{lc($subject)};
-    }
-  }
-  # display facts
-  elsif ($arg =~ m/^(.*)\?$/) {
-    $self->privmsg($to, $data->{facts}->{lc($1)});
   }
 }
 
