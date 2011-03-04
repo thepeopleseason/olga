@@ -257,6 +257,15 @@ sub on_public {
           $msg .= $data->{lunchdrive}->[rand(@{$data->{lunchdrive}})];
         }
       }
+      elsif ($1 =~ m/^vegan\s*(.*)/i) {
+        if ($1 =~ m/add\s*(.*)/i) {
+          push @{$data->{lunchvegan}}, $1;
+          $msg = 'Added.';
+        }
+        else {
+          $msg .= $data->{lunchvegan}->[rand(@{$data->{lunchvegan}})];
+        }
+      }
       else {
         if ($1 =~ m/add\s*(.*)/i) {
           push @{$data->{lunch}}, $1;
