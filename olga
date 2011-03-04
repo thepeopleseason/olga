@@ -473,7 +473,7 @@ sub on_public {
   elsif ($arg =~ m/^(.*)\?$/) {
     $self->privmsg($to, $data->{facts}->{lc($1)});
   }
-  elsif ($arg =~ m/((CMS[A-Z]+|CHR|GUR|WD|FR|HELPDESK|SUPPORT)-[0-9]+)/) {
+  elsif ($arg =~ m/((CMS[A-Z]+|CHR|GUR|WD|FR|HELPDESK|SUPPORT|PMR)-[0-9]+)/) {
     my $ticket = $1;
     if ($arg !~ m{browse/$1}) {
       # record recent tickets
