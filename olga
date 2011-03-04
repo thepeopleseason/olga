@@ -247,6 +247,26 @@ sub on_public {
     elsif ($arg =~ m/^tanka/i) {
       &compose_poem($self, $to, 1);
     }
+    elsif ($arg =~ m/^lunch\s*(.*)/i) {
+      if ($1 =~ m/^drive\s*(.*)/i) {
+        if ($1 =~ m/add\s*(.*)/i) {
+          push @{$data->{lunchdrive}}, $1;
+          $msg = 'Added.';
+        }
+        else {
+          $msg .= $data->{lunchdrive}->[rand(@{$data->{lunchdrive}})];
+        }
+      }
+      else {
+        if ($1 =~ m/add\s*(.*)/i) {
+          push @{$data->{lunch}}, $1;
+          $msg = 'Added.';
+        }
+        else {
+          $msg = $data->{lunch}->[rand(@{$data->{lunch}})];
+        }
+      }
+    }
     elsif ($arg =~ /^mquote (.+)/) {
       my ($quote, $line);
       my ($title, $pos) = find_title_quotes ($1);
@@ -347,7 +367,7 @@ sub on_public {
     elsif ($arg =~ /^help/) {
       my @funcs = qw(stock quote dow nasdaq s&p haiku tanka
                      scope saurus roget sniglet abuse morse
-                     horoscope forget jquery);
+                     horoscope forget jquery lunch);
       $msg .= sprintf("Usage: $mynick <%s>", join('|', @funcs));
     }
     # master commands
