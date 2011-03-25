@@ -30,6 +30,7 @@ my @factsnark =
 (
  "http://bit.ly/4kb77v",
  "Have you considered adding a bookmark?",
+ "You know you can message me the query so it's not broadcast...",
 );
 
 my @panic =
@@ -481,7 +482,7 @@ sub on_public {
   # display facts
   elsif ($arg =~ m/^(\S*)\?$/) {
     my $fact = $data->{facts}->{lc($1)};
-    if (($fact =~ m/http/) && (rand() < 0.10)) {
+    if (($fact =~ m/http/) && (rand() < 0.10) && ($type ne 'msg')) {
         $self->privmsg($to, $factsnark[rand(@factsnark)]);
     }
     else {
