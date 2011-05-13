@@ -256,9 +256,6 @@ sub on_public {
     elsif ($arg =~ m/^tanka/i) {
       &compose_poem($self, $to, 1);
     }
-    elsif ($arg =~ m/^.*dubstep/i) {
-      $msg = "wub" x (int(rand(10))+1);
-    }
     elsif ($arg =~ m/^lunch\s*(.*)/i) {
       if ($1 =~ m/atlanta\-based, montana\-themed/i) {
         $msg = "Ted's Montana Grill";
@@ -435,6 +432,9 @@ sub on_public {
     $msg = "this ain\'t your vi";
     $self->privmsg($to, "$msg\n")
       unless ($trans->{stfu}->{$channel});
+  }
+  elsif ($arg =~ m/^.*dubstep/i) {
+    $msg = "wub" x (int(rand(10))+1);
   }
   elsif ($arg =~ /PAK.*UNF/) {
     $msg = $spacerobots[rand(@spacerobots)];
