@@ -202,6 +202,8 @@ sub on_public {
   my $channel = ($event->to)[0];
   my $to = $type eq 'msg' ? $nick : $channel;
 
+  return if ($channel eq '#irpg');
+
   if ($type eq "msg") {
     print sprintf(qq(%s /msg'd me: %s), $event->nick, Dumper($event->args));
   }
@@ -482,7 +484,7 @@ sub on_public {
   # display facts
   elsif ($arg =~ m/^(\S*)\?$/) {
     my $fact = $data->{facts}->{lc($1)};
-    if (($fact =~ m/http/) && (rand() < 0.10) && ($type ne 'msg')) {
+    if (($fact =~ m/^http/) && (rand() < 0.10) && ($type ne 'msg')) {
         $self->privmsg($to, $factsnark[rand(@factsnark)]);
     }
     else {
