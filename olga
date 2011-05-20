@@ -433,6 +433,9 @@ sub on_public {
     $self->privmsg($to, "$msg\n")
       unless ($trans->{stfu}->{$channel});
   }
+  elsif ($arg =~ m/^.*dubstep/i) {
+    $msg = "wub" x (int(rand(10))+1);
+  }
   elsif ($arg =~ /PAK.*UNF/) {
     $msg = $spacerobots[rand(@spacerobots)];
     $self->privmsg($to, "$msg\n")
