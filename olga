@@ -494,7 +494,7 @@ sub on_public {
       $self->privmsg($to, $fact);
     }
   }
-  elsif ($arg =~ m/((CMS[A-Z]+|CHR|GUR|WD|FR|HELPDESK|SUPPORT|PMR)-[0-9]+)/) {
+  elsif ($arg =~ m/((CMS[A-Z]+|CHR|GUR|WD|FR|HELPDESK|SUPPORT|PMR)-[0-9]+)/i) {
     my $ticket = $1;
     if ($arg !~ m{browse/$1}) {
       # record recent tickets
@@ -522,7 +522,7 @@ sub on_public {
       else {
         $msg =
           sprintf("%s %s %s", $nick, $about[rand(@about)],
-                  "https://jira.cmgdigital.com/browse/$1");
+                  "https://jira.cmgdigital.com/browse/\U$1");
       }
 
       # output message
