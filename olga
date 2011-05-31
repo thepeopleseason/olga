@@ -521,7 +521,7 @@ sub on_public {
       else {
         $msg =
           sprintf("%s %s %s", $nick, $about[rand(@about)],
-                  "https://jira.cmgdigital.com/browse/\U$1");
+                  "https://jira.cmgdigital.com/browse/\U$1\E");
       }
 
       # output message
