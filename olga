@@ -113,19 +113,14 @@ sub on_connect {
   $trans->{stfu}->{$channel} = 0;
 
   if ($mynick eq 'olga') {
-    eval { $self->join("#qa"); };
-    if ($@) {
-      print "$@";
-    }
-    else {
-      $trans->{stfu}->{'#qa'} = 0;
-    }
-    eval { $self->join("#bots"); };
-    if ($@) {
-      print "$@";
-    }
-    else {
-      $trans->{stfu}->{'#bots'} = 0;
+    for my $chan (@config::channels) {
+      eval { $self->join("#$chan"); };
+      if ($@) {
+        print "$@";
+      }
+      else {
+        $trans->{stfu}->{"#$chan"} = 0;
+      }
     }
   }
 
