@@ -13,6 +13,7 @@ use Data::Dumper;
 
 require "movie_quotes.pl";
 require "movie_trivia.pl";
+require "dpaste.pl";
 require "admin.pl";
 require "config.pl";
 
