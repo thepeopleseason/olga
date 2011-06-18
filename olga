@@ -556,9 +556,38 @@ sub haiku {
       $conn->privmsg($to, $usage);
       return;
     }
-    if ($proc =~ m/^add$/i) {
+    if ($proc =~ m/^(add|add_use)$/i) {
       push @{$data->{haiku}->{lc($type)}}, $phrase;
       $conn->privmsg($to, "Added.\n");
+    }
+    elsif ($proc =~ m/^(use|add_use)$/i) {
+        my @fives;
+        my @sevens;
+        push @fives, @{$data->{haiku}->{fives}};
+        push @sevens, @{$data->{haiku}->{sevens}};
+        my $five = $fives[rand(@fives)];
+        @fives = grep {!/$five/} @fives;
+
+        my $five1;
+        my $five2;
+        my $seven;
+        if ($type eq "fives") {
+            if (rand() < 0.50){
+                $five1 = $phrase;
+                $five2 = $five;
+            } else {
+                $five2 = $phrase;
+                $five1 = $five;
+            }
+            $seven = $sevens[rand(@sevens)];
+        } else {
+            $seven = $phrase;
+            $five1 = $five;
+            $five2 = $fives[rand(@fives)];
+        }
+        $conn->privmsg($to, $five1);
+        $conn->privmsg($to, $seven);
+        $conn->privmsg($to, $five2);
     }
     else {
       @{$data->{haiku}->{lc($type)}} =
