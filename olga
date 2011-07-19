@@ -36,6 +36,7 @@ my @factsnark =
 
 my @panic =
 (
+ "http://i.imgur.com/9Hy0o.gif",
  "http://twitpic.com/3u9fuk",
  "http://twitpic.com/3u9f5m",
  "http://twitpic.com/3u9fk7",
@@ -199,6 +200,7 @@ sub on_public {
   my $to = $type eq 'msg' ? $nick : $channel;
 
   return if ($channel eq '#irpg');
+  return if ($nick eq 'rbronosky');
 
   if ($type eq "msg") {
     print sprintf(qq(%s /msg'd me: %s), $event->nick, Dumper($event->args));
