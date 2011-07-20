@@ -10,6 +10,7 @@ use XML::RSS;
 use XML::Simple;
 use JSON::XS;
 use Data::Dumper;
+use List::Util qw/shuffle/;
 
 require "movie_quotes.pl";
 require "movie_trivia.pl";
@@ -242,19 +243,11 @@ sub on_public {
         ( 'dow', '^DJI', 'nasdaq', '^IXIC', 's&p', '^SPX', );
       $msg = &get_stockprice($index{$1});
     }
-    elsif ($arg =~ m/^haiku\s*(.*)/i) {
-      if ($1) {
-        &haiku($self, $to, $1);
-      }
-      else {
-        &compose_poem($self, $to);
-      }
-    }
-    elsif ($arg =~ m/^tanka/i) {
-      &compose_poem($self, $to, 1);
+    elsif ($arg =~ m/^(haiku|tanka)\s*(.*)?/i) {
+      &haiku($self, $to, $1, $2);
     }
     elsif ($arg =~ m/^lunch\s*(.*)/i) {
-      if ($1 =~ m/atlanta\-based, montana\-themed/i) {
+      if ($1 =~ m/atlanta\-based,? montana\-themed/i) {
         $msg = "Ted's Montana Grill";
       }
       elsif ($1 =~ m/^drive\s*(.*)/i) {
@@ -457,7 +450,7 @@ sub on_public {
     $self->privmsg($to,"$msg\n")
       unless ($trans->{stfu}->{$channel});
   }
-  elsif ($arg =~ m/(panic|shock|screen ?pass)/) {
+  elsif ($arg =~ m/(panic|shock|screen ?pass)/i) {
     $msg = $panic[rand(@panic)];
     $self->privmsg($to,"$msg\n")
       unless ($trans->{stfu}->{$channel});
@@ -544,81 +537,84 @@ sub fill_output {
 }
 
 sub haiku {
-  my ($conn, $to, $args) = @_;
+  my ($conn, $to, $poemtype, $args) = @_;
 
-  my $usage = "Usage: haiku add (fives|sevens) <phrase>\n";
+  my $usage = "Usage: (haiku|tanka) [(add|remove|use|add_use) (fives|sevens) <phrase>]\n";
 
+  my $emit_poem = 0;
 
-  if ($args) {
-    $args =~ m/^(\S*)\s+(\S*)\s+(.*)$/;
-    my ($proc, $type, $phrase) = ($1, $2, $3);
+  my $use_phrase;
+  $args =~ m/^(\S*)\s+(\S*)\s+(.*)$/;
+  my ($proc, $syl, $phrase) = ($1, $2, $3);
 
-    if (($proc !~ m/^(add|remove|use)/i) || ($type !~ m/^(five|seven)s/i)) {
+  if ($proc) {
+    if (($proc !~ m/^(add|remove|use)/i) || ($syl !~ m/^(five|seven)s/i)) {
       $conn->privmsg($to, $usage);
       return;
     }
-    if ($proc =~ m/^(add|add_use)$/i) {
-      push @{$data->{haiku}->{lc($type)}}, $phrase;
+    if ($proc =~ m/^add/i) {
+      push @{$data->{haiku}->{lc($syl)}}, $phrase;
       $conn->privmsg($to, "Added.\n");
     }
-    if ($proc =~ m/^(use|add_use)$/i) {
-      my @fives;
-      my @sevens;
-      push @fives, @{$data->{haiku}->{fives}};
-      push @sevens, @{$data->{haiku}->{sevens}};
-      my $five = $fives[rand(@fives)];
-      @fives = grep {!/$five/} @fives;
-
-      my $five1;
-      my $five2;
-      my $seven;
-      if ($type eq "fives") {
-        if (rand() < 0.50){
-          $five1 = $phrase;
-          $five2 = $five;
-        } else {
-          $five2 = $phrase;
-          $five1 = $five;
-        }
-        $seven = $sevens[rand(@sevens)];
-      } else {
-        $seven = $phrase;
-        $five1 = $five;
-        $five2 = $fives[rand(@fives)];
-      }
-      $conn->privmsg($to, $five1);
-      $conn->privmsg($to, $seven);
-      $conn->privmsg($to, $five2);
-    }
-    if ($proc =~ m/^remove$/i) {
-      @{$data->{haiku}->{lc($type)}} =
-        grep {!/$phrase/} @{$data->{haiku}->{lc($type)}};
+    elsif ($proc =~ m/^remove$/i) {
+      @{$data->{haiku}->{lc($syl)}} =
+        grep {!/$phrase/} @{$data->{haiku}->{lc($syl)}};
       $conn->privmsg($to, "Removed.\n");
     }
+
+    $emit_poem = 1
+      if ($proc =~ m/^(use|add_use)/i);
   }
-}
+  else {
+    $emit_poem = 1;
+  }
 
-sub compose_poem {
-  my ($conn, $to, $type) = @_;
+  if ($emit_poem) {
+    my @fives;
+    my @sevens;
 
-  my @fives;
-  my @sevens;
-  push @fives, @{$data->{haiku}->{fives}};
-  push @sevens, @{$data->{haiku}->{sevens}};
+    if ($proc =~ m/^(use|add_use)/i) {
+      if ($syl eq 'fives') {
+        push @fives, $phrase;
+      }
+      elsif ($syl eq 'sevens') {
+        push @sevens, $phrase;
+      }
+    }
 
-  my $five = $fives[rand(@fives)];
-  @fives = grep {!/$five/} @fives;
+    my @five_index;
+    while (scalar(@five_index) < (2 - scalar(@fives))) {
+      my $index = rand(@{$data->{haiku}->{fives}});
+      push @five_index, $index unless
+        scalar(grep(m/^$index$/, @five_index));
+    }
 
-  my $seven1 = $sevens[rand(@sevens)];
-  @sevens = grep {!/$seven1/} @sevens;
-  my $seven2 = $sevens[rand(@sevens)];
-  @sevens = grep {!/$seven2/} @sevens;
+    my @seven_index;
+    my $max_sevens = $poemtype eq 'tanka' ? 3 : 1;
+    while (scalar(@seven_index) < ($max_sevens - scalar(@sevens))) {
+      my $index = rand(@{$data->{haiku}->{sevens}});
+      push @seven_index, $index unless
+        scalar(grep(m/^$index$/, @seven_index));
+    }
 
-  $conn->privmsg($to, $five);
-  $conn->privmsg($to, $seven1);
-  $conn->privmsg($to, $fives[rand(@fives)]);
-  $conn->privmsg($to, $seven2) if ($type);
-  $conn->privmsg($to, $sevens[rand(@sevens)]) if ($type);
+    for my $index (@five_index) {
+      push @fives, $data->{haiku}->{fives}->[$index];
+    }
+    for my $index (@seven_index) {
+      push @sevens, $data->{haiku}->{sevens}->[$index];
+    }
+
+    @fives = shuffle(@fives);
+    @sevens = shuffle(@sevens);
+
+    $conn->privmsg($to, $fives[0]);
+    $conn->privmsg($to, $sevens[0]);
+    $conn->privmsg($to, $fives[1]);
+    if ($poemtype eq 'tanka') {
+      $conn->privmsg($to, $sevens[1]);
+      $conn->privmsg($to, $sevens[2]);
+    }
+  }
 }
 
 sub saurus {
