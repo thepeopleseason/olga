@@ -200,7 +200,6 @@ sub on_public {
   my $to = $type eq 'msg' ? $nick : $channel;
 
   return if ($channel eq '#irpg');
-  return if ($nick eq 'rbronosky');
 
   if ($type eq "msg") {
     print sprintf(qq(%s /msg'd me: %s), $event->nick, Dumper($event->args));
