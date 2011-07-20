@@ -607,12 +607,12 @@ sub haiku {
     @fives = shuffle(@fives);
     @sevens = shuffle(@sevens);
 
-    $conn->privmsg($to, $fives[0]);
-    $conn->privmsg($to, $sevens[0]);
-    $conn->privmsg($to, $fives[1]);
+    $conn->privmsg($to, shift(@fives));
+    $conn->privmsg($to, shift(@sevens));
+    $conn->privmsg($to, shift(@fives));
     if ($poemtype eq 'tanka') {
-      $conn->privmsg($to, $sevens[1]);
-      $conn->privmsg($to, $sevens[2]);
+      $conn->privmsg($to, shift(@sevens));
+      $conn->privmsg($to, shift(@sevens));
     }
   }
 }
