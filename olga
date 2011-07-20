@@ -544,10 +544,10 @@ sub haiku {
   my $emit_poem = 0;
 
   my $use_phrase;
-  $args =~ m/^(\S*)\s+(\S*)\s+(.*)$/;
+  $args =~ m/^(\S+)\s+(\S+)\s+(.*)$/;
   my ($proc, $syl, $phrase) = ($1, $2, $3);
 
-  if ($proc) {
+  if ($args) {
     if (($proc !~ m/^(add|remove|use)/i) || ($syl !~ m/^(five|seven)s/i)) {
       $conn->privmsg($to, $usage);
       return;
