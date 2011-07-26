@@ -202,6 +202,11 @@ sub on_public {
 
   return if ($channel eq '#irpg');
 
+  if ($data->{bans} && scalar @{$data->{bans}}) {
+    my $banRE = join('|', @{$data->{bans}});
+    return if ($nick =~ m/^($banRE)/);
+  }
+
   if ($type eq "msg") {
     print sprintf(qq(%s /msg'd me: %s), $event->nick, Dumper($event->args));
   }
@@ -372,6 +377,21 @@ sub on_public {
       delete $data->{facts}->{lc($1)};
       $msg .= "baleeted.";
     }
+    elsif ($arg =~ /^ticketre\s+(.*)/i) {
+      my $args = $1;
+      if ($args !~ m/\s/) {
+        push @{$data->{ticketRE}}, lc($args);
+        $msg .= "Added.";
+      }
+      else {
+        my ($func, $pattern) = split($args);
+        if ($func eq 'remove') {
+          @{$data->{ticketRE}} =
+            grep {!/\L$pattern\E/} @{$data->{ticketRE}};
+          $conn->privmsg($to, "Removed.\n");
+        }
+      }
+    }
     elsif ($arg =~ /^help/) {
       my @funcs = qw(stock quote dow nasdaq s&p haiku tanka
                      scope saurus roget sniglet abuse morse
@@ -407,6 +427,13 @@ sub on_public {
       $msg .= $wit[rand(@wit)] if (rand() < $data->{talkback});
     }
     &fill_output($self, $msg, $to) unless $msg eq "$nick, ";
+  }
+
+
+  my $ticketRE;
+  if ($data->{ticketRE}) {
+    $ticketRE = sprintf("((%s)\-[0-9]+)",
+                           join('|', @{$data->{ticketRE}}));
   }
 
   # Unaddressed responses
@@ -483,7 +510,7 @@ sub on_public {
       $self->privmsg($to, $fact);
     }
   }
-  elsif ($arg =~ m/((CMS[A-Z]+|CHR|GUR|WD|FR|HELPDESK|SUPPORT|PMR)-[0-9]+)/i) {
+  elsif ($ticketRE && $arg =~ m/$ticketRE/i) {
     my $ticket = $1;
     if ($arg !~ m{browse/$1}) {
       # record recent tickets
