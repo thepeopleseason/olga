@@ -392,10 +392,31 @@ sub on_public {
         }
       }
     }
+    elsif ($arg =~ /^dump\s*(.*)/) {
+      if ($1) {
+        $msg = dpaste(Dumper($data->{$1}));
+      }
+      else {
+        $msg = dpaste(Dumper($data));
+      }
+    }
+    elsif ($arg =~ /^keys\s*(.*)/) {
+      my $secretkeys = $admin::secretkeys ? $admin::secretkeys : '';
+      if ($1) {
+        $msg = join(' ', ref($data->{$1}) eq 'HASH'
+                    ? grep {!/^$secretkeys$/} keys %{$data->{$1}}
+                    : $data->{$1}
+          );
+      }
+      else {
+        $msg = join(' ', grep {!/^$secretkeys$/} keys %$data);
+      }
+    }
     elsif ($arg =~ /^help/) {
       my @funcs = qw(stock quote dow nasdaq s&p haiku tanka
                      scope saurus roget sniglet abuse morse
-                     horoscope forget jquery lunch);
+                     horoscope forget lunch dump keys
+                     ticketre);
       $msg .= sprintf("Usage: $mynick <%s>", join('|', @funcs));
     }
     # master commands
