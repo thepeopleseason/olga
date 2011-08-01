@@ -28,27 +28,6 @@ my @spacerobots =
  "Shoving will protect you from the terrible secret of space.",
 );
 
-my @factsnark =
-(
- "http://bit.ly/4kb77v",
- "Have you considered adding a bookmark?",
- "You know you can message me the query so it's not broadcast...",
-);
-
-my @panic =
-(
- "http://i.imgur.com/9Hy0o.gif",
- "http://twitpic.com/3u9fuk",
- "http://twitpic.com/3u9f5m",
- "http://twitpic.com/3u9fk7",
- "http://www.youtube.com/watch?v=C_S5cXbXe-4",
-);
-
-my @about =
-  (
-   'may be talking about',
-   'is probably referring to',
-  );
 
 my @eightball = (
   "As I see it, yes",
@@ -392,6 +371,22 @@ sub on_public {
         }
       }
     }
+    elsif ($arg =~ /^addpanic\s+(.*)/i) {
+      push @{$data->{panic}}, $1;
+      $msg .= "Added.";
+    }
+    elsif ($arg =~ /^addshock\s+(.*)/i) {
+      push @{$data->{shock}}, $1;
+      $msg .= "Added.";
+    }
+    elsif ($arg =~ /^addsnark\s+(.*)/i) {
+      push @{$data->{factsnark}}, $1;
+      $msg .= "Added.";
+    }
+    elsif ($arg =~ /^addticketref\s+(.*)/i) {
+      push @{$data->{ticketref}}, $1;
+      $msg .= "Added.";
+    }
     elsif ($arg =~ /^dump\s*(.*)/) {
       if ($1) {
         $msg = dpaste(Dumper($data->{$1}));
@@ -498,8 +493,13 @@ sub on_public {
     $self->privmsg($to,"$msg\n")
       unless ($trans->{stfu}->{$channel});
   }
-  elsif ($arg =~ m/(panic|shock|screen ?pass)/i) {
-    $msg = $panic[rand(@panic)];
+  elsif ($arg =~ m/(panic|screen ?pass)/i) {
+    $msg = $data->{panic}->[rand(@{$data->{panic}})];
+    $self->privmsg($to,"$msg\n")
+      unless ($trans->{stfu}->{$channel});
+  }
+  elsif ($arg =~ m/(shock)/i) {
+    $msg = $data->{shock}->[rand(@{$data->{shock}})];
     $self->privmsg($to,"$msg\n")
       unless ($trans->{stfu}->{$channel});
   }
@@ -525,7 +525,7 @@ sub on_public {
   elsif ($arg =~ m/^(\S*)\?$/) {
     my $fact = $data->{facts}->{lc($1)};
     if (($fact =~ m/^http/) && (rand() < 0.10) && ($type ne 'msg')) {
-        $self->privmsg($to, $factsnark[rand(@factsnark)]);
+        $self->privmsg($to, $data->{factsnark}->[rand(@{$data->{factsnark}})]);
     }
     else {
       $self->privmsg($to, $fact);
@@ -558,7 +558,8 @@ sub on_public {
       }
       else {
         $msg =
-          sprintf("%s %s %s", $nick, $about[rand(@about)],
+          sprintf("%s %s %s", $nick,
+                  $data->{ticketref}->[rand(@{$data->{ticketref}})],
                   "https://jira.cmgdigital.com/browse/\U$1\E");
       }
 
