@@ -63,10 +63,11 @@ $mynick = 'olga' if (!$mynick);
 $conn = $irc->newconn(
   Nick => "$mynick",
   Server => $config::server,
-  Port => 6667,
+  Port => $config::port||6667,
   Ircname => 'Whatcha lookin at, bichachi?',
-  Username => "$mynick",
+  Username => $config::uname,
   Password => $config::pw,
+  SSL => $config::SSL||0,
   );
 
 $trans->{userhost} = '(j(ames|hsiao)|James_Hsi)';
