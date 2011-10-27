@@ -608,7 +608,7 @@ sub haiku {
     }
     elsif ($proc =~ m/^remove$/i) {
       @{$data->{haiku}->{lc($syl)}} =
-        grep {!/$phrase/} @{$data->{haiku}->{lc($syl)}};
+        grep {$_ ne $phrase} @{$data->{haiku}->{lc($syl)}};
       $conn->privmsg($to, "Removed.\n");
     }
 
