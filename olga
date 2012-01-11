@@ -571,6 +571,19 @@ sub on_public {
       }
     }
   }
+  elsif ($arg =~ m/cr([0-9]+)/i) {
+    my $cr = $1;
+    $msg =
+      sprintf("%s %s %s", $nick,
+              $data->{ticketref}->[rand(@{$data->{ticketref}})],
+              "codereview: https://review.ddtc.cmgdigital.com/r/${cr}");
+
+    # output message
+    if ($msg) {
+      $self->privmsg($to, "$msg\n")
+        unless ($trans->{stfu}->{$channel});
+    }
+  }
 }
 
 sub fill_output {
