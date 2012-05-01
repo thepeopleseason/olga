@@ -576,7 +576,7 @@ sub on_public {
     $msg =
       sprintf("%s %s %s", $nick,
               $data->{ticketref}->[rand(@{$data->{ticketref}})],
-              "codereview: https://reviews.ddtc.cmgdigital.com/r/${cr}");
+              "codereview: http://reviews.ddtc.cmgdigital.com/r/${cr}");
 
     # output message
     if ($msg) {
