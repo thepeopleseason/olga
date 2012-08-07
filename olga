@@ -459,6 +459,13 @@ sub on_public {
     $self->privmsg($to, "$msg\n")
       unless ($trans->{stfu}->{$channel});
   }
+  elsif ($arg =~ /^logs\?\s*$/) {
+    my $logchan = $channel;
+    $logchan =~ s/^\#//;
+    $msg = "http://logger.ddtc.cmgdigital.com/$logchan/";
+    $self->privmsg($to, "$msg\n")
+      unless ($trans->{stfu}->{$channel});
+  }
   elsif ($arg =~ /^(\:wq)$/) {
     $msg = "this ain\'t your vi";
     $self->privmsg($to, "$msg\n")
